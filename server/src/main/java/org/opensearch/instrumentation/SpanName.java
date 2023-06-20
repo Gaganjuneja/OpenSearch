@@ -2,6 +2,9 @@ package org.opensearch.instrumentation;
 
 import java.util.Objects;
 
+/**
+ * CLass
+ */
 public class SpanName {
 
     String name;

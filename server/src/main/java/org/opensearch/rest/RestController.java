@@ -51,6 +51,8 @@ import org.opensearch.common.xcontent.XContentType;
 import org.opensearch.common.util.io.Streams;
 import org.opensearch.http.HttpServerTransport;
 import org.opensearch.indices.breaker.CircuitBreakerService;
+import org.opensearch.instrumentation.Tracer;
+import org.opensearch.instrumentation.TracerFactory;
 import org.opensearch.usage.UsageService;
 
 import java.io.ByteArrayOutputStream;
@@ -238,6 +240,9 @@ public class RestController implements HttpServerTransport.Dispatcher {
     @Override
     public void dispatchRequest(RestRequest request, RestChannel channel, ThreadContext threadContext) {
         try {
+            if (request.uri().startsWith("/_search")) {
+                TracerFactory.getInstance().startSpan("Request_" + String.valueOf(request.getRequestId()), null, Tracer.Level.ROOT);
+            }
             tryAllHandlers(request, channel, threadContext);
         } catch (Exception e) {
             try {

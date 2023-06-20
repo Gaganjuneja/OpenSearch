@@ -37,6 +37,7 @@ import com.carrotsearch.hppc.ObjectIntMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.ParameterizedMessage;
+import org.opensearch.action.search.SearchTask;
 import org.opensearch.core.Assertions;
 import org.opensearch.ExceptionsHelper;
 import org.opensearch.OpenSearchException;
@@ -232,11 +233,11 @@ public class TaskManager implements ClusterStateApplier {
             Task previousTask = tasks.put(task.getId(), task);
             assert previousTask == null;
         }
-        if(request instanceof SearchRequest || request instanceof ShardSearchRequest || request instanceof ShardFetchRequest) {
+        if(request instanceof SearchRequest || request instanceof ShardSearchRequest || request instanceof ShardFetchRequest || request instanceof SearchTask) {
             System.out.println("task.getParentTaskId() " + task.getParentTaskId() + request.getClass() + " " + task.getId() + " " + task.getClass());
             String parentId = task.getParentTaskId().isSet() ? String.valueOf(task.getParentTaskId().getId()) : null;
             String parentSpanName = parentId != null ? "Task_" + parentId : null;
-            TracerFactory.getInstance().startTrace(new SpanName("Task_" + task.getId(), String.valueOf(task.getId())), null, new SpanName(parentSpanName, parentId), Tracer.Level.HIGH);
+            //TracerFactory.getInstance().startTrace("Task_" + task.getId(), null, "Task_" + parentId, Tracer.Level.HIGH);
         }
         return task;
     }
@@ -310,7 +311,7 @@ public class TaskManager implements ClusterStateApplier {
         } else {
             task1 = tasks.remove(task.getId());
         }
-        TracerFactory.getInstance().endTrace(new SpanName("Task_" + task.getId(), String.valueOf(task.getId())));
+        //TracerFactory.getInstance().endTrace(new SpanName("Task_" + task.getId(), String.valueOf(task.getId())));
        return task1;
     }
 

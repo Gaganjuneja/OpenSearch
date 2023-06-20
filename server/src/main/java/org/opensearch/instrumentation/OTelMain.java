@@ -16,28 +16,61 @@ import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.util.concurrent.TimeUnit;
+import org.opensearch.instrumentation.span.exporter.FileSpanExporter;
 
+/**
+ * CLass
+ */
 public class OTelMain {
-    public static final OpenTelemetry openTelemetry;
-
+    private static OpenTelemetry openTelemetry;
+    private static final Resource resource;
     static {
-        Resource resource = Resource.getDefault()
+        resource = Resource.getDefault()
             .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "OpenSearch-Search")));
-
-        SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-            .addSpanProcessor(BatchSpanProcessor.builder(OtlpGrpcSpanExporter.builder()
-                .setTimeout(2, TimeUnit.SECONDS).build()).build())
-            .setResource(resource)
-            .build();
+    }
 
 
+    public static void initialize() {
+        if(openTelemetry == null) {
+            SpanProcessor spanProcessor = BatchSpanProcessor.builder(OtlpGrpcSpanExporter.builder()
+                .setTimeout(2, TimeUnit.SECONDS).build()).build();
+            //SpanProcessor spanProcessor = BatchSpanProcessor.builder(FileSpanExporter.create()).build();
+            SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+                .addSpanProcessor(spanProcessor)
+                .setResource(resource)
+                .build();
+            openTelemetry = OpenTelemetrySdk.builder()
+                .setTracerProvider(sdkTracerProvider)
+                .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
+                .buildAndRegisterGlobal();
+        }
+    }
 
-        openTelemetry = OpenTelemetrySdk.builder()
-            .setTracerProvider(sdkTracerProvider)
-            .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
-            .buildAndRegisterGlobal();
+    public static void initialize(SpanProcessor spanProcessor) {
+        if(openTelemetry == null) {
+            SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+                .addSpanProcessor(spanProcessor)
+                .setResource(resource)
+                .build();
+            openTelemetry = OpenTelemetrySdk.builder()
+                .setTracerProvider(sdkTracerProvider)
+                .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
+                .buildAndRegisterGlobal();
+        }
+    }
+
+    public static OpenTelemetry getOpenTelemetry(){
+         if(openTelemetry == null){
+             initialize();
+         }
+         return openTelemetry;
+    }
+
+    public static void shutdown(){
+        ((OpenTelemetrySdk)openTelemetry).close();
     }
 }

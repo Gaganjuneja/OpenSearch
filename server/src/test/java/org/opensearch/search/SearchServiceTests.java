@@ -105,6 +105,7 @@ import org.opensearch.search.internal.ShardSearchContextId;
 import org.opensearch.search.internal.ShardSearchRequest;
 import org.opensearch.search.query.QuerySearchResult;
 import org.opensearch.search.suggest.SuggestBuilder;
+import org.opensearch.test.IgnoreTracingStrictValidation;
 import org.opensearch.test.OpenSearchSingleNodeTestCase;
 import org.opensearch.threadpool.ThreadPool;
 import org.junit.Before;
@@ -1313,6 +1314,7 @@ public class SearchServiceTests extends OpenSearchSingleNodeTestCase {
         }
     }
 
+    @IgnoreTracingStrictValidation(reason = "By design")
     public void testDeleteIndexWhileSearch() throws Exception {
         createIndex("test");
         int numDocs = randomIntBetween(1, 20);

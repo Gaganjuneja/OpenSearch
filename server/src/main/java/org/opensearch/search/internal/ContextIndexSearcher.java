@@ -212,8 +212,7 @@ public class ContextIndexSearcher extends IndexSearcher implements Releasable {
         DocValueFormat[] formats,
         TotalHits totalHits
     ) throws IOException {
-        String id = UUID.randomUUID().toString();
-        TracerFactory.getInstance().startTrace(new SpanName("IndexSearcher", id), null, Tracer.Level.LOW);
+        TracerFactory.getInstance().startSpan("IndexSearcher", null, Tracer.Level.TRACE);
         final List<Collector> collectors = new ArrayList<>(leaves.size());
         for (LeafReaderContext ctx : leaves) {
             final Collector collector = manager.newCollector();
@@ -231,7 +230,7 @@ public class ContextIndexSearcher extends IndexSearcher implements Releasable {
         }
         result.topDocs(new TopDocsAndMaxScore(mergedTopDocs, Float.NaN), formats);
 
-        TracerFactory.getInstance().endTrace(new SpanName("IndexSearcher", id));
+        TracerFactory.getInstance().endSpan();
     }
 
     public void search(
@@ -256,11 +255,11 @@ public class ContextIndexSearcher extends IndexSearcher implements Releasable {
     @Override
     protected void search(List<LeafReaderContext> leaves, Weight weight, Collector collector) throws IOException {
         String id = UUID.randomUUID().toString();
-        TracerFactory.getInstance().startTrace(new SpanName("IndexSearcher", id), null, Tracer.Level.LOW);
+        TracerFactory.getInstance().startSpan("IndexSearcher", null, Tracer.Level.TRACE);
         for (LeafReaderContext ctx : leaves) { // search each subreader
             searchLeaf(ctx, weight, collector);
         }
-        TracerFactory.getInstance().endTrace(new SpanName("IndexSearcher", id));
+        TracerFactory.getInstance().endSpan();
     }
 
     /**
@@ -271,7 +270,7 @@ public class ContextIndexSearcher extends IndexSearcher implements Releasable {
      */
     private void searchLeaf(LeafReaderContext ctx, Weight weight, Collector collector) throws IOException {
         String id = UUID.randomUUID().toString();
-        TracerFactory.getInstance().startTrace(new SpanName("IndexSearcher-Leaf", id), null, Tracer.Level.LOW);
+        TracerFactory.getInstance().startSpan("IndexSearcher-Leaf", null, Tracer.Level.TRACE);
         cancellable.checkCancelled();
         weight = wrapWeight(weight);
         // See please https://github.com/apache/lucene/pull/964
@@ -313,7 +312,7 @@ public class ContextIndexSearcher extends IndexSearcher implements Releasable {
                 }
             }
         }
-        TracerFactory.getInstance().endTrace(new SpanName("IndexSearcher-Leaf", id));
+        TracerFactory.getInstance().endSpan();
     }
 
     private Weight wrapWeight(Weight weight) {

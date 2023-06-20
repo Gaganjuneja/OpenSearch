@@ -1,33 +1,44 @@
 package org.opensearch.instrumentation;
 
-import io.opentelemetry.api.trace.Span;
+/**
+ * Class
+ */
+import io.opentelemetry.api.trace.SpanContext;
 
-public class OSSpan {
-    private SpanName spanName;
-    private Span span;
-    private OSSpan parentSpan;
-    private Tracer.Level level;
+public class OSSpan implements Span {
+    private final String spanName;
+    private final io.opentelemetry.api.trace.Span otelSpan;
+    private final Span parentSpan;
+    private final Tracer.Level level;
 
-    public OSSpan(SpanName spanName, Span span, OSSpan parentSpan, Tracer.Level level) {
+    public OSSpan(String spanName, io.opentelemetry.api.trace.Span span, OSSpan parentSpan, Tracer.Level level) {
         this.spanName = spanName;
-        this.span = span;
+        this.otelSpan = span;
         this.parentSpan = parentSpan;
         this.level = level;
     }
 
-    public Span getSpan() {
-        return span;
-    }
-
-    public OSSpan getParentSpan() {
+    @Override
+    public Span getParentSpan() {
         return parentSpan;
     }
 
+    @Override
     public Tracer.Level getLevel() {
         return level;
     }
 
-    public SpanName getSpanName() {
+    @Override
+    public String getSpanName() {
         return spanName;
     }
+
+    io.opentelemetry.api.trace.Span getOtelSpan() {
+        return otelSpan;
+    }
+
+    SpanContext getSpanContext() {
+        return otelSpan.getSpanContext();
+    }
+
 }

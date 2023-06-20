@@ -32,10 +32,15 @@
 
 package org.opensearch.transport;
 
+import org.opensearch.action.NotifyOnceListener;
+import org.opensearch.action.search.SearchRequest;
 import org.opensearch.common.io.stream.StreamInput;
 import org.opensearch.common.io.stream.Writeable;
 import org.opensearch.common.lease.Releasable;
 import org.opensearch.common.lease.Releasables;
+import org.opensearch.instrumentation.Tracer;
+import org.opensearch.instrumentation.TracerFactory;
+import org.opensearch.search.fetch.ShardFetchRequest;
 import org.opensearch.search.internal.ShardSearchRequest;
 import org.opensearch.common.util.concurrent.ThreadContext;
 import org.opensearch.tasks.CancellableTask;
@@ -87,6 +92,24 @@ public final class RequestHandlerRegistry<Request extends TransportRequest> {
 
     public void processMessageReceived(Request request, TransportChannel channel) throws Exception {
         final Task task = taskManager.register(channel.getChannelType(), action, request);
+        if(isTracingEnabledRequest(request)) {
+            TracerFactory.getInstance().startSpan("Task_" + request.getClass().getName() + "_" + task.getId(), null, Tracer.Level.INFO);
+            task.addResourceTrackingCompletionListener(new NotifyOnceListener<Task>() {
+                                                           @Override
+                                                           protected void innerOnResponse(Task task) {
+                                                               TracerFactory.getInstance().addAttribute("Task_CPU", task.getTotalResourceStats().getCpuTimeInNanos());
+                                                               TracerFactory.getInstance().addAttribute("Task_MEM", task.getTotalResourceStats().getMemoryInBytes());
+                                                               System.out.println("Ending from innerOnResponse");
+                                                               TracerFactory.getInstance().endSpan();
+                                                           }
+
+                                                           @Override
+                                                           protected void innerOnFailure(Exception e) {
+                                                               System.out.println("Ending from innerOnFailure");
+                                                               TracerFactory.getInstance().endSpan();
+                                                           }
+                                                       });
+        }
         ThreadContext.StoredContext contextToRestore = taskManager.taskExecutionStarted(task);
 
         Releasable unregisterTask = () -> taskManager.unregister(task);
@@ -108,6 +131,14 @@ public final class RequestHandlerRegistry<Request extends TransportRequest> {
         } finally {
             Releasables.close(unregisterTask);
             contextToRestore.restore();
+        }
+    }
+
+    private boolean isTracingEnabledRequest(Request request) {
+        if(request instanceof SearchRequest || request instanceof ShardSearchRequest || request instanceof ShardFetchRequest){
+            return true;
+        }else{
+            return false;
         }
     }
 

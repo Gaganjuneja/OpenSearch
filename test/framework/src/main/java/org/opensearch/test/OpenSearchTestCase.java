@@ -50,6 +50,7 @@ import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.layout.CsvParameterLayout;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.logging.log4j.status.StatusConsoleListener;
 import org.apache.logging.log4j.status.StatusData;
@@ -102,7 +103,6 @@ import org.opensearch.core.xcontent.NamedXContentRegistry;
 import org.opensearch.core.xcontent.ToXContent;
 import org.opensearch.core.xcontent.XContent;
 import org.opensearch.core.xcontent.XContentBuilder;
-import org.opensearch.core.xcontent.MediaType;
 import org.opensearch.core.xcontent.XContentParser;
 import org.opensearch.core.xcontent.XContentParser.Token;
 import org.opensearch.env.Environment;
@@ -118,6 +118,9 @@ import org.opensearch.index.analysis.NamedAnalyzer;
 import org.opensearch.index.analysis.TokenFilterFactory;
 import org.opensearch.index.analysis.TokenizerFactory;
 import org.opensearch.indices.analysis.AnalysisModule;
+import org.opensearch.instrumentation.OTelMain;
+import org.opensearch.instrumentation.span.exporter.FileSpanExporter;
+import org.opensearch.instrumentation.span.exporter.StrictCheckSimpleSpanProcessor;
 import org.opensearch.monitor.jvm.JvmInfo;
 import org.opensearch.plugins.AnalysisPlugin;
 import org.opensearch.plugins.Plugin;
@@ -228,7 +231,11 @@ public abstract class OpenSearchTestCase extends LuceneTestCase {
 
     public static final String FIPS_SYSPROP = "tests.fips.enabled";
 
+    private static final StrictCheckSimpleSpanProcessor strictCheckSimpleSpanProcessor;
+
     static {
+        strictCheckSimpleSpanProcessor = new StrictCheckSimpleSpanProcessor(new FileSpanExporter());
+        OTelMain.initialize(strictCheckSimpleSpanProcessor);
         TEST_WORKER_VM_ID = System.getProperty(TEST_WORKER_SYS_PROPERTY, DEFAULT_TEST_WORKER_ID);
         setTestSysProps();
         LogConfigurator.loadLog4jPlugins();
@@ -254,6 +261,8 @@ public abstract class OpenSearchTestCase extends LuceneTestCase {
             leakAppender.stop();
             LoggerContext context = (LoggerContext) LogManager.getContext(false);
             Configurator.shutdown(context);
+            //OTelMain.shutdown();
+            //strictCheckSimpleSpanProcessor.ensureAllSpansAreClosed();
         }));
 
         BootstrapForTesting.ensureInitialized();
@@ -385,7 +394,8 @@ public abstract class OpenSearchTestCase extends LuceneTestCase {
             this.headerWarningAppender = null;
         }
     }
-
+    @Rule
+    public IgnoreTracingStrictValidationRule ignoreTracingStrictValidationRule = new IgnoreTracingStrictValidationRule();
     @Before
     public final void before() {
         logger.info("{}before test", getTestParamsForLogging());
@@ -429,6 +439,11 @@ public abstract class OpenSearchTestCase extends LuceneTestCase {
         ensureCheckIndexPassed();
         // "clear" the deprecated message set for the next tests to run independently.
         DeprecatedMessage.resetDeprecatedMessageForTests();
+        if(!ignoreTracingStrictValidationRule.shouldIgnoreTracingStrictValidation()) {
+            strictCheckSimpleSpanProcessor.ensureAllSpansAreClosed();
+        }else{
+            strictCheckSimpleSpanProcessor.clear();
+        }
         logger.info("{}after test", getTestParamsForLogging());
     }
 
@@ -656,6 +671,7 @@ public abstract class OpenSearchTestCase extends LuceneTestCase {
 
     @Before
     public final void resetCheckIndexStatus() throws Exception {
+        strictCheckSimpleSpanProcessor.clear();
         checkIndexFailures.clear();
     }
 

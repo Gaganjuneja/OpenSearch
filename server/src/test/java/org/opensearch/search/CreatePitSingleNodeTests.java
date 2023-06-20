@@ -27,6 +27,7 @@ import org.opensearch.common.unit.TimeValue;
 import org.opensearch.index.IndexNotFoundException;
 import org.opensearch.search.builder.PointInTimeBuilder;
 import org.opensearch.search.sort.SortOrder;
+import org.opensearch.test.IgnoreTracingStrictValidation;
 import org.opensearch.test.OpenSearchSingleNodeTestCase;
 import org.opensearch.index.IndexService;
 import org.opensearch.index.shard.IndexShard;
@@ -221,6 +222,7 @@ public class CreatePitSingleNodeTests extends OpenSearchSingleNodeTestCase {
         assertEquals("invalid id: [" + id + "]", e.getMessage());
     }
 
+    @IgnoreTracingStrictValidation(reason = "ByDesign")
     public void testPitSearchOnCloseIndex() throws ExecutionException, InterruptedException {
         createIndex("index", Settings.builder().put("index.number_of_shards", 2).put("index.number_of_replicas", 0).build());
         client().prepareIndex("index").setId("1").setSource("field", "value").setRefreshPolicy(IMMEDIATE).get();

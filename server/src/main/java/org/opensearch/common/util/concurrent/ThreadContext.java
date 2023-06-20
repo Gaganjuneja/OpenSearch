@@ -44,6 +44,9 @@ import org.opensearch.common.settings.Setting;
 import org.opensearch.common.settings.Setting.Property;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.http.HttpTransportSettings;
+import org.opensearch.instrumentation.DefaultTracer;
+import org.opensearch.instrumentation.SpanHolder;
+import org.opensearch.instrumentation.TracerUtils;
 import org.opensearch.tasks.Task;
 
 import java.io.IOException;
@@ -131,6 +134,9 @@ public final class ThreadContext implements Writeable {
      */
     public StoredContext stashContext() {
         final ThreadContextStruct context = threadLocal.get();
+        if(Thread.currentThread().getName().startsWith("TEST-SearchService1Tests.testClearOnClose") || Thread.currentThread().getName().startsWith("opensearch[node_s_0][search]")){
+            System.out.println("stashContext");
+        }
         /**
          * X-Opaque-ID should be preserved in a threadContext in order to propagate this across threads.
          * This is needed so the DeprecationLogger in another thread can see the value of X-Opaque-ID provided by a user.
@@ -149,6 +155,15 @@ public final class ThreadContext implements Writeable {
 
         if (context.transientHeaders.containsKey(TASK_ID)) {
             threadContextStruct = threadContextStruct.putTransient(TASK_ID, context.transientHeaders.get(TASK_ID));
+        }
+
+        if (context.transientHeaders.containsKey(DefaultTracer.CURRENT_SPAN)) {
+            SpanHolder spanHolder = (SpanHolder) context.transientHeaders.get(DefaultTracer.CURRENT_SPAN);
+            if(spanHolder.getSpan() != null) {
+                System.out.println("context TC " + spanHolder.getSpan().getSpanName());
+            }
+            threadContextStruct = threadContextStruct.putTransient(DefaultTracer.CURRENT_SPAN, new SpanHolder((SpanHolder) context.transientHeaders.get(DefaultTracer.CURRENT_SPAN)));
+
         }
 
         threadLocal.set(threadContextStruct);
@@ -223,7 +238,17 @@ public final class ThreadContext implements Writeable {
      * @param preserveResponseHeaders if set to <code>true</code> the response headers of the restore thread will be preserved.
      */
     public StoredContext newStoredContext(boolean preserveResponseHeaders, Collection<String> transientHeadersToClear) {
+        if(Thread.currentThread().getName().startsWith("TEST-SearchService1Tests.testClearOnClose") || Thread.currentThread().getName().startsWith("opensearch[node_s_0][search]")){
+            System.out.println("newStoredContext");
+            ThreadContext context = this;
+        }
         final ThreadContextStruct originalContext = threadLocal.get();
+        if (originalContext.transientHeaders.containsKey(DefaultTracer.CURRENT_SPAN)) {
+            SpanHolder spanHolder = (SpanHolder) originalContext.transientHeaders.get(DefaultTracer.CURRENT_SPAN);
+            if(spanHolder.getSpan() != null) {
+                System.out.println("originalContext " + spanHolder.getSpan().getSpanName());
+            }
+        }
         // clear specific transient headers from the current context
         Map<String, Object> newTransientHeaders = null;
         for (String transientHeaderToClear : transientHeadersToClear) {
@@ -231,6 +256,7 @@ public final class ThreadContext implements Writeable {
                 if (newTransientHeaders == null) {
                     newTransientHeaders = new HashMap<>(originalContext.transientHeaders);
                 }
+                System.out.println("Removing header " + transientHeaderToClear);
                 newTransientHeaders.remove(transientHeaderToClear);
             }
         }
@@ -246,6 +272,13 @@ public final class ThreadContext implements Writeable {
         }
         // this is the context when this method returns
         final ThreadContextStruct newContext = threadLocal.get();
+        if (newContext.transientHeaders.containsKey(DefaultTracer.CURRENT_SPAN)) {
+            newContext.transientHeaders.put(DefaultTracer.CURRENT_SPAN, new SpanHolder((SpanHolder) newContext.transientHeaders.get(DefaultTracer.CURRENT_SPAN)));
+            SpanHolder spanHolder = (SpanHolder) newContext.transientHeaders.get(DefaultTracer.CURRENT_SPAN);
+            if(spanHolder.getSpan() != null) {
+                System.out.println("newCOntext " + spanHolder.getSpan().getSpanName());
+            }
+        }
         return () -> {
             if (preserveResponseHeaders && threadLocal.get() != newContext) {
                 threadLocal.set(originalContext.putResponseHeaders(threadLocal.get().responseHeaders));
@@ -412,6 +445,9 @@ public final class ThreadContext implements Writeable {
      * Puts a transient header object into this context
      */
     public void putTransient(String key, Object value) {
+        if(key == DefaultTracer.CURRENT_SPAN){
+            System.out.println("putTransient");
+        }
         threadLocal.set(threadLocal.get().putTransient(key, value));
     }
 
@@ -710,6 +746,7 @@ public final class ThreadContext implements Writeable {
         }
 
         private void writeTo(StreamOutput out, Map<String, String> defaultHeaders) throws IOException {
+            TracerUtils.addTracerContextToHeader(this.requestHeaders, this.transientHeaders);
             final Map<String, String> requestHeaders;
             if (defaultHeaders.isEmpty()) {
                 requestHeaders = this.requestHeaders;

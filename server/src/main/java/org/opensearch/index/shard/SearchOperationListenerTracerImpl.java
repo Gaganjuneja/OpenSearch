@@ -8,35 +8,48 @@
 
 package org.opensearch.index.shard;
 
+import org.opensearch.common.inject.Inject;
 import org.opensearch.instrumentation.SpanName;
 import org.opensearch.instrumentation.Tracer;
 import org.opensearch.instrumentation.TracerFactory;
 import org.opensearch.search.internal.SearchContext;
 
+/**
+ * Class
+ */
 public class SearchOperationListenerTracerImpl implements SearchOperationListener {
+
 
     @Override
     public void onPreQueryPhase(SearchContext searchContext) {
-        SearchOperationListener.super.onPreQueryPhase(searchContext);
-        System.out.println("Inside onPreQueryPhase Listener " + searchContext.getThreadPool().getThreadContext().getTransient("TASK_ID"));
-        TracerFactory.getInstance().startTrace(new SpanName("onQueryPhase" + searchContext.getTask().getId(), searchContext.indexShard().getHistoryUUID()), null, Tracer.Level.MID);
+        TracerFactory.getInstance().startSpan("onQueryPhase", null, Tracer.Level.INFO);
     }
 
     @Override
     public void onQueryPhase(SearchContext searchContext, long tookInNanos) {
-        SearchOperationListener.super.onQueryPhase(searchContext, tookInNanos);
-        TracerFactory.getInstance().endTrace(new SpanName("onQueryPhase" + searchContext.getTask().getId(), searchContext.indexShard().getHistoryUUID()));
+        TracerFactory.getInstance().endSpan();
     }
 
     @Override
+    public void onFailedQueryPhase(SearchContext searchContext) {
+        TracerFactory.getInstance().endSpan();
+    }
+
+
+    @Override
     public void onPreFetchPhase(SearchContext searchContext) {
-        SearchOperationListener.super.onPreFetchPhase(searchContext);
-        TracerFactory.getInstance().startTrace(new SpanName("onFetchPhase" + searchContext.getTask().getId()+searchContext.getTask().getParentTaskId().getId(), searchContext.indexShard().getHistoryUUID()), null, Tracer.Level.MID);
+        TracerFactory.getInstance().addEvent("Closing span because of query phase failure");
+        TracerFactory.getInstance().startSpan("onFetchPhase", null, Tracer.Level.INFO);
     }
 
     @Override
     public void onFetchPhase(SearchContext searchContext, long tookInNanos) {
-        SearchOperationListener.super.onFetchPhase(searchContext, tookInNanos);
-        TracerFactory.getInstance().endTrace(new SpanName("onFetchPhase" + searchContext.getTask().getId()+searchContext.getTask().getParentTaskId().getId(), searchContext.indexShard().getHistoryUUID()));
+        TracerFactory.getInstance().endSpan();
+    }
+
+    @Override
+    public void onFailedFetchPhase(SearchContext searchContext) {
+        TracerFactory.getInstance().addEvent("Closing span because of fetch phase failure");
+        TracerFactory.getInstance().endSpan();
     }
 }

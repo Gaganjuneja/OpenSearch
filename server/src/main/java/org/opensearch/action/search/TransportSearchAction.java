@@ -33,6 +33,7 @@
 package org.opensearch.action.search;
 
 import org.opensearch.action.ActionListener;
+import org.opensearch.action.NotifyOnceListener;
 import org.opensearch.action.OriginalIndices;
 import org.opensearch.action.admin.cluster.node.tasks.cancel.CancelTasksRequest;
 import org.opensearch.action.admin.cluster.shards.ClusterSearchShardsGroup;
@@ -71,6 +72,8 @@ import org.opensearch.index.Index;
 import org.opensearch.index.query.Rewriteable;
 import org.opensearch.index.shard.ShardId;
 import org.opensearch.indices.breaker.CircuitBreakerService;
+import org.opensearch.instrumentation.Tracer;
+import org.opensearch.instrumentation.TracerFactory;
 import org.opensearch.search.SearchPhaseResult;
 import org.opensearch.search.SearchService;
 import org.opensearch.search.SearchShardTarget;
@@ -273,15 +276,44 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
         // cancellation. There may be other top level requests like AsyncSearch which is using SearchRequest internally and has it's own
         // cancellation mechanism. For such cases, the SearchRequest when created can override the createTask and set the
         // cancelAfterTimeInterval to NO_TIMEOUT and bypass this mechanism
+        final ActionListener<SearchResponse> responseListener;
         if (task instanceof CancellableTask) {
-            listener = TimeoutTaskCancellationUtility.wrapWithCancellationListener(
+            responseListener = TimeoutTaskCancellationUtility.wrapWithCancellationListener(
                 client,
                 (CancellableTask) task,
                 clusterService.getClusterSettings(),
                 listener
             );
+        }else{
+            responseListener = listener;
         }
-        executeRequest(task, searchRequest, this::searchAsyncAction, listener);
+        TracerFactory.getInstance().startSpan("Search_Coordinator", null, Tracer.Level.INFO);
+        TracerFactory.getInstance().addAttribute("Req_Id", searchRequest.getRequestId());
+        TracerFactory.getInstance().addAttribute("query_type", searchRequest.source().query().getName());
+        task.addResourceTrackingCompletionListener(new NotifyOnceListener<Task>() {
+            @Override
+            protected void innerOnResponse(Task task) {
+                TracerFactory.getInstance().addAttribute("Task_CPU", task.getTotalResourceStats().getCpuTimeInNanos());
+                TracerFactory.getInstance().addAttribute("Task_MEM", task.getTotalResourceStats().getMemoryInBytes());
+            }
+
+            @Override
+            protected void innerOnFailure(Exception e) {
+            }
+        });
+        ActionListener<SearchResponse> newListener = new ActionListener<SearchResponse>() {
+            @Override
+            public void onResponse(SearchResponse searchResponse) {
+                TracerFactory.getInstance().endSpan();
+                responseListener.onResponse(searchResponse);
+            }
+            @Override
+            public void onFailure(Exception e) {
+                TracerFactory.getInstance().endSpan();
+                responseListener.onFailure(e);
+            }
+        };
+        executeRequest(task, searchRequest, this::searchAsyncAction, newListener);
     }
 
     /**

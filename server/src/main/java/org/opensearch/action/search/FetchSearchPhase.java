@@ -38,6 +38,9 @@ import org.apache.lucene.search.ScoreDoc;
 import org.opensearch.action.OriginalIndices;
 import org.opensearch.common.util.concurrent.AbstractRunnable;
 import org.opensearch.common.util.concurrent.AtomicArray;
+import org.opensearch.instrumentation.Span;
+import org.opensearch.instrumentation.SpanName;
+import org.opensearch.instrumentation.TracerFactory;
 import org.opensearch.search.RescoreDocIds;
 import org.opensearch.search.SearchPhaseResult;
 import org.opensearch.search.SearchShardTarget;
@@ -167,6 +170,7 @@ final class FetchSearchPhase extends SearchPhase {
                     finishPhase,
                     context
                 );
+                Span span = TracerFactory.getInstance().getCurrentSpan();
                 for (int i = 0; i < docIdsToLoad.length; i++) {
                     IntArrayList entry = docIdsToLoad[i];
                     SearchPhaseResult queryResult = queryResults.get(i);
@@ -196,6 +200,7 @@ final class FetchSearchPhase extends SearchPhase {
                             queryResult.getRescoreDocIds()
                         );
                         executeFetch(i, searchShardTarget, counter, fetchSearchRequest, queryResult.queryResult(), connection);
+                        TracerFactory.getInstance().setCurrentSpanInContext(span);
                     }
                 }
             }

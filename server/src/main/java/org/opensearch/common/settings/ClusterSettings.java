@@ -43,6 +43,7 @@ import org.opensearch.index.SegmentReplicationPressureService;
 import org.opensearch.index.ShardIndexingPressureMemoryManager;
 import org.opensearch.index.ShardIndexingPressureSettings;
 import org.opensearch.index.ShardIndexingPressureStore;
+import org.opensearch.instrumentation.Tracer;
 import org.opensearch.search.backpressure.settings.NodeDuressSettings;
 import org.opensearch.search.backpressure.settings.SearchBackpressureSettings;
 import org.opensearch.search.backpressure.settings.SearchShardTaskSettings;
@@ -631,7 +632,8 @@ public final class ClusterSettings extends AbstractScopedSettings {
                 SegmentReplicationPressureService.SEGMENT_REPLICATION_INDEXING_PRESSURE_ENABLED,
                 SegmentReplicationPressureService.MAX_INDEXING_CHECKPOINTS,
                 SegmentReplicationPressureService.MAX_REPLICATION_TIME_SETTING,
-                SegmentReplicationPressureService.MAX_ALLOWED_STALE_SHARDS
+                SegmentReplicationPressureService.MAX_ALLOWED_STALE_SHARDS,
+                Tracer.TRACER_LEVEL_SETTING
             )
         )
     );

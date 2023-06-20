@@ -38,6 +38,8 @@ import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.opensearch.Version;
 import org.opensearch.action.ActionListener;
 import org.opensearch.action.ActionListenerResponseHandler;
+import org.opensearch.action.search.SearchRequest;
+import org.opensearch.action.search.SearchTask;
 import org.opensearch.action.support.PlainActionFuture;
 import org.opensearch.cluster.ClusterName;
 import org.opensearch.cluster.node.DiscoveryNode;
@@ -61,6 +63,8 @@ import org.opensearch.common.util.concurrent.ThreadContext;
 import org.opensearch.common.util.io.IOUtils;
 import org.opensearch.node.NodeClosedException;
 import org.opensearch.node.ReportingService;
+import org.opensearch.search.fetch.ShardFetchRequest;
+import org.opensearch.search.internal.ShardSearchRequest;
 import org.opensearch.tasks.Task;
 import org.opensearch.tasks.TaskManager;
 import org.opensearch.threadpool.Scheduler;
@@ -878,7 +882,6 @@ public class TransportService extends AbstractLifecycleComponent
             throw new IllegalStateException("can't send request to a null connection");
         }
         DiscoveryNode node = connection.getNode();
-
         Supplier<ThreadContext.StoredContext> storedContextSupplier = threadPool.getThreadContext().newRestorableContext(true);
         ContextRestoreResponseHandler<T> responseHandler = new ContextRestoreResponseHandler<>(storedContextSupplier, handler);
         // TODO we can probably fold this entire request ID dance into connection.sendReqeust but it will be a bigger refactoring

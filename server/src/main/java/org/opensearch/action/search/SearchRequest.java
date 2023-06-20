@@ -115,6 +115,8 @@ public class SearchRequest extends ActionRequest implements IndicesRequest.Repla
 
     private TimeValue cancelAfterTimeInterval;
 
+    private Long requestId;
+
     public SearchRequest() {
         this.localClusterAlias = null;
         this.absoluteStartMillis = DEFAULT_ABSOLUTE_START_MILLIS;
@@ -657,6 +659,14 @@ public class SearchRequest extends ActionRequest implements IndicesRequest.Repla
     @Override
     public SearchTask createTask(long id, String type, String action, TaskId parentTaskId, Map<String, String> headers) {
         return new SearchTask(id, type, action, this::buildDescription, parentTaskId, headers, cancelAfterTimeInterval);
+    }
+
+    public Long getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(long requestId) {
+        this.requestId = requestId;
     }
 
     public final String buildDescription() {

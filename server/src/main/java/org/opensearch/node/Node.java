@@ -52,6 +52,8 @@ import org.opensearch.indices.replication.SegmentReplicationTargetService;
 import org.opensearch.indices.replication.SegmentReplicationSourceService;
 import org.opensearch.extensions.ExtensionsManager;
 import org.opensearch.extensions.NoopExtensionsManager;
+import org.opensearch.instrumentation.DefaultTracer;
+import org.opensearch.instrumentation.Tracer;
 import org.opensearch.monitor.fs.FsInfo;
 import org.opensearch.monitor.fs.FsProbe;
 import org.opensearch.instrumentation.TracerFactory;
@@ -1003,8 +1005,7 @@ public class Node implements Closeable {
                 searchModule.getIndexSearcherExecutor(threadPool)
             );
 
-            TracerFactory.initializeTracer(threadPool);
-
+            TracerFactory.initializeTracer(threadPool, clusterService);
             final List<PersistentTasksExecutor<?>> tasksExecutors = pluginsService.filterPlugins(PersistentTaskPlugin.class)
                 .stream()
                 .map(

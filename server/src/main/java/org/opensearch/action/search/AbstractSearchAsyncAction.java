@@ -51,6 +51,11 @@ import org.opensearch.common.lease.Releasables;
 import org.opensearch.common.util.concurrent.AbstractRunnable;
 import org.opensearch.common.util.concurrent.AtomicArray;
 import org.opensearch.index.shard.ShardId;
+import org.opensearch.instrumentation.OSSpan;
+import org.opensearch.instrumentation.Span;
+import org.opensearch.instrumentation.SpanName;
+import org.opensearch.instrumentation.Tracer;
+import org.opensearch.instrumentation.TracerFactory;
 import org.opensearch.search.SearchPhaseResult;
 import org.opensearch.search.SearchShardTarget;
 import org.opensearch.search.internal.AliasFilter;
@@ -246,6 +251,7 @@ abstract class AbstractSearchAsyncAction<Result extends SearchPhaseResult> exten
                     throw new SearchPhaseExecutionException(getName(), msg, null, ShardSearchFailure.EMPTY_ARRAY);
                 }
             }
+            Span span = TracerFactory.getInstance().getCurrentSpan();
             for (int index = 0; index < shardsIts.size(); index++) {
                 final SearchShardIterator shardRoutings = shardsIts.get(index);
                 assert shardRoutings.skip() == false;
@@ -275,8 +281,10 @@ abstract class AbstractSearchAsyncAction<Result extends SearchPhaseResult> exten
             final PendingExecutions pendingExecutions = throttleConcurrentRequests
                 ? pendingExecutionsPerNode.computeIfAbsent(shard.getNodeId(), n -> new PendingExecutions(maxConcurrentRequestsPerNode))
                 : null;
+            Span span = TracerFactory.getInstance().getCurrentSpan();
             Runnable r = () -> {
                 final Thread thread = Thread.currentThread();
+                //TracerFactory.getInstance().startSpan("SearchPhase_"+shardIndex, null, span, Tracer.Level.INFO);
                 try {
                     executePhaseOnShard(shardIt, shard, new SearchActionListener<Result>(shard, shardIndex) {
                         @Override
@@ -284,6 +292,7 @@ abstract class AbstractSearchAsyncAction<Result extends SearchPhaseResult> exten
                             try {
                                 onShardResult(result, shardIt);
                             } finally {
+                                //TracerFactory.getInstance().endSpan();
                                 executeNext(pendingExecutions, thread);
                             }
                         }
@@ -293,6 +302,7 @@ abstract class AbstractSearchAsyncAction<Result extends SearchPhaseResult> exten
                             try {
                                 onShardFailure(shardIndex, shard, shardIt, t);
                             } finally {
+                                //TracerFactory.getInstance().endSpan();
                                 executeNext(pendingExecutions, thread);
                             }
                         }
@@ -314,6 +324,7 @@ abstract class AbstractSearchAsyncAction<Result extends SearchPhaseResult> exten
                             }
                         });
                     } finally {
+                        TracerFactory.getInstance().endSpan();
                         executeNext(pendingExecutions, thread);
                     }
                 }
@@ -323,6 +334,7 @@ abstract class AbstractSearchAsyncAction<Result extends SearchPhaseResult> exten
             } else {
                 r.run();
             }
+            TracerFactory.getInstance().setCurrentSpanInContext(span);
         }
     }
 
