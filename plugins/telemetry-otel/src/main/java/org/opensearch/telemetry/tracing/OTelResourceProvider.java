@@ -23,6 +23,7 @@ import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import org.opensearch.common.settings.Settings;
 
 import java.util.concurrent.TimeUnit;
+import org.opensearch.telemetry.tracing.exporter.SpanExporterFactory;
 
 import static org.opensearch.telemetry.OTelTelemetryPlugin.TRACER_EXPORTER_BATCH_SIZE_SETTING;
 import static org.opensearch.telemetry.OTelTelemetryPlugin.TRACER_EXPORTER_DELAY_SETTING;
@@ -32,6 +33,8 @@ import static org.opensearch.telemetry.OTelTelemetryPlugin.TRACER_EXPORTER_MAX_Q
  * This class encapsulates all OpenTelemetry related resources
  */
 public final class OTelResourceProvider {
+
+    private static final SpanExporterFactory spanExporterFactory = new SpanExporterFactory();
     private OTelResourceProvider() {}
 
     /**
@@ -40,6 +43,7 @@ public final class OTelResourceProvider {
      * @return OpenTelemetry instance
      */
     public static OpenTelemetry get(Settings settings) {
+        SpanExporter spanExporter = spanExporterFactory.create(settings);
         return get(
             settings,
             new LoggingSpanExporter(),
