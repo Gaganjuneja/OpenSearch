@@ -11,6 +11,8 @@ import org.opensearch.gradle.Architecture
 import org.opensearch.gradle.OS
 import org.opensearch.gradle.info.BuildParams
 
+apply plugin: "opensearch.publish"
+
 opensearchplugin {
   description 'Opentelemetry based telemetry implementation.'
   classname 'org.opensearch.telemetry.OTelTelemetryPlugin'
@@ -30,6 +32,7 @@ dependencies {
   api "io.opentelemetry:opentelemetry-sdk-logs:${versions.opentelemetry}-alpha"
   api "io.opentelemetry:opentelemetry-api-logs:${versions.opentelemetry}-alpha"
   api "io.opentelemetry:opentelemetry-exporter-otlp-common:${versions.opentelemetry}"
+  api "io.opentelemetry:opentelemetry-exporter-common:${versions.opentelemetry}"
   api "io.opentelemetry:opentelemetry-exporter-otlp:${versions.opentelemetry}"
   api 'com.squareup.okhttp3:okhttp:4.10.0'
   api 'org.jetbrains.kotlin:kotlin-stdlib:1.6.20'

@@ -16,7 +16,15 @@ import java.util.Arrays;
  */
 public enum SpanExporterType {
 
-    LOGGING, OLTP_GRPC;
+    /**
+     * LOGGING - writes span to logs directory.
+     */
+    LOGGING,
+
+    /**
+     * OLTP_GRPC - Used OTEL OtlpGrpcSpanExporter.
+     */
+    OLTP_GRPC;
 
     /**
      * Creates the {@link SpanExporterType} instance from the String.
