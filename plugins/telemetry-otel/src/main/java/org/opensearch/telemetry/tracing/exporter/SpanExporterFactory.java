@@ -29,7 +29,7 @@ public class SpanExporterFactory {
         SpanExporterType.LOGGING.name(),
         SpanExporterType::fromString,
         Setting.Property.NodeScope,
-        Setting.Property.Dynamic
+        Setting.Property.Final
     );
 
     /**
