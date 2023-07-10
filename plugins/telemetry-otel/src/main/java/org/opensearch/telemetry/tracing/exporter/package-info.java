@@ -6,9 +6,7 @@
  * compatible open source license.
  */
 
-grant {
-    permission java.net.SocketPermission "*", "connect,resolve";
-    //permission java.net.NetPermission "getProxySelector";
-};
-
-
+/**
+ * This package contains classes needed for tracing requests.
+ */
+package org.opensearch.telemetry.tracing.exporter;

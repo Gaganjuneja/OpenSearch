@@ -28,8 +28,8 @@ public enum SpanExporterType {
 
     /**
      * Creates the {@link SpanExporterType} instance from the String.
-     * @param name
-     * @return
+     * @param name name of the span exporter
+     * @return SpanExporter type.
      */
     public static SpanExporterType fromString(String name) {
         for (SpanExporterType exporterType : values()) {
