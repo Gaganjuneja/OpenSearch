@@ -174,7 +174,7 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
         SearchPipelineService searchPipelineService,
         TracerFactory tracerFactory
     ) {
-        super(SearchAction.NAME, transportService, actionFilters, (Writeable.Reader<SearchRequest>) SearchRequest::new);
+        super(SearchAction.NAME, transportService, actionFilters, (Writeable.Reader<SearchRequest>) SearchRequest::new, tracerFactory);
         this.client = client;
         this.threadPool = threadPool;
         this.circuitBreaker = circuitBreakerService.getBreaker(CircuitBreaker.REQUEST);

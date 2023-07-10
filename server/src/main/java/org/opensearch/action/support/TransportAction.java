@@ -184,7 +184,9 @@ public abstract class TransportAction<Request extends ActionRequest, Response ex
      * Use this method when the transport action should continue to run in the context of the current task
      */
     public final void execute(Task task, Request request, ActionListener<Response> listener) {
+        logger.error("Is TracerFactory enabled " + tracerFactory.isPresent());
         if (tracerFactory.isPresent()) {
+            logger.error("Inside create span check");
             SpanScope scope = tracerFactory.get().getTracer().startSpan(actionName);
             scope.addSpanAttribute("task_id", task.getId());
             listener = new TracingActionListener<>(tracerFactory.get(), listener, scope);
