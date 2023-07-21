@@ -32,4 +32,12 @@ public interface TracerContextStorage<K, V> {
      * @param value of the tracing context
      */
     void put(K key, V value);
+
+    /**
+     * newTracerContextStorage
+     * @return newTracerContextStorage
+     */
+    default AutoCloseable newTracerContextStorage() {
+        return null;
+    }
 }

@@ -8,6 +8,8 @@
 
 package org.opensearch.telemetry.tracing;
 
+import java.io.Closeable;
+import java.util.Arrays;
 import org.opensearch.common.util.concurrent.ThreadContext;
 import org.opensearch.common.util.concurrent.ThreadContextStatePropagator;
 
@@ -89,5 +91,11 @@ public class ThreadContextBasedTracerContextStorage implements TracerContextStor
 
     private Span spanFromHeader() {
         return tracingTelemetry.getContextPropagator().extract(threadContext.getHeaders());
+    }
+
+    @Override
+    public AutoCloseable newTracerContextStorage() {
+        ThreadContext.StoredContext newContext = threadContext.newStoredContext(true);
+        return () -> newContext.close();
     }
 }

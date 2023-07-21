@@ -50,6 +50,7 @@ import org.opensearch.search.internal.ShardSearchRequest;
 import org.opensearch.search.sort.MinAndMax;
 import org.opensearch.search.sort.SortBuilders;
 import org.opensearch.search.sort.SortOrder;
+import org.opensearch.telemetry.tracing.NoopTracerFactory;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.transport.Transport;
 
@@ -136,7 +137,8 @@ public class CanMatchPreFilterSearchPhaseTests extends OpenSearchTestCase {
                     latch.countDown();
                 }
             },
-            SearchResponse.Clusters.EMPTY
+            SearchResponse.Clusters.EMPTY,
+            new NoopTracerFactory()
         );
 
         canMatchPhase.start();
@@ -227,7 +229,8 @@ public class CanMatchPreFilterSearchPhaseTests extends OpenSearchTestCase {
                     latch.countDown();
                 }
             },
-            SearchResponse.Clusters.EMPTY
+            SearchResponse.Clusters.EMPTY,
+            new NoopTracerFactory()
         );
 
         canMatchPhase.start();
@@ -317,7 +320,8 @@ public class CanMatchPreFilterSearchPhaseTests extends OpenSearchTestCase {
                 null,
                 new ArraySearchPhaseResults<>(iter.size()),
                 randomIntBetween(1, 32),
-                SearchResponse.Clusters.EMPTY
+                SearchResponse.Clusters.EMPTY,
+                new NoopTracerFactory()
             ) {
 
                 @Override
@@ -344,7 +348,8 @@ public class CanMatchPreFilterSearchPhaseTests extends OpenSearchTestCase {
                     }
                 }
             },
-            SearchResponse.Clusters.EMPTY
+            SearchResponse.Clusters.EMPTY,
+            new NoopTracerFactory()
         );
 
         canMatchPhase.start();
@@ -428,7 +433,8 @@ public class CanMatchPreFilterSearchPhaseTests extends OpenSearchTestCase {
                         latch.countDown();
                     }
                 },
-                SearchResponse.Clusters.EMPTY
+                SearchResponse.Clusters.EMPTY,
+                new NoopTracerFactory()
             );
 
             canMatchPhase.start();
@@ -527,7 +533,8 @@ public class CanMatchPreFilterSearchPhaseTests extends OpenSearchTestCase {
                         latch.countDown();
                     }
                 },
-                SearchResponse.Clusters.EMPTY
+                SearchResponse.Clusters.EMPTY,
+                new NoopTracerFactory()
             );
 
             canMatchPhase.start();

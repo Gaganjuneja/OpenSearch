@@ -79,6 +79,7 @@ List projects = [
   'distribution:tools:upgrade-cli',
   'server',
   'server:cli',
+  'test:telemetry',
   'test:framework',
   'test:fixtures:azure-fixture',
   'test:fixtures:gcs-fixture',
@@ -87,8 +88,7 @@ List projects = [
   'test:fixtures:minio-fixture',
   'test:fixtures:old-elasticsearch',
   'test:fixtures:s3-fixture',
-  'test:logger-usage',
-  'test:telemetry'
+  'test:logger-usage'
 ]
 
 /**

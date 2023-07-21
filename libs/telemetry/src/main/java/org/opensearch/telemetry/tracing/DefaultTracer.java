@@ -76,4 +76,9 @@ public class DefaultTracer implements Tracer {
         span.addAttribute(THREAD_NAME, Thread.currentThread().getName());
     }
 
+    @Override
+    public AutoCloseable newTracerContextStorage() {
+        return tracerContextStorage.newTracerContextStorage();
+    }
+
 }

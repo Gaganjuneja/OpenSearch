@@ -574,7 +574,7 @@ public class Node implements Closeable {
                 );
             }
 
-            if (FeatureFlags.isEnabled(TELEMETRY)) {
+            if (true) {
                 final TelemetrySettings telemetrySettings = new TelemetrySettings(settings, clusterService.getClusterSettings());
                 List<TelemetryPlugin> telemetryPlugins = pluginsService.filterPlugins(TelemetryPlugin.class);
                 TelemetryModule telemetryModule = new TelemetryModule(telemetryPlugins, telemetrySettings);

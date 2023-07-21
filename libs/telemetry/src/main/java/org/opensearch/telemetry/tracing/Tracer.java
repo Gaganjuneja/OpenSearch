@@ -26,4 +26,12 @@ public interface Tracer extends Closeable {
      */
     SpanScope startSpan(String spanName);
 
+    /**
+     * newTracerContextStorage
+     * @return auto closable
+     */
+    default AutoCloseable newTracerContextStorage() {
+        return null;
+    }
+
 }

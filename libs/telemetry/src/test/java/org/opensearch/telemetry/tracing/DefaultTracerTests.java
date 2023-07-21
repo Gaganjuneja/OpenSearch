@@ -59,6 +59,19 @@ public class DefaultTracerTests extends OpenSearchTestCase {
         verify(mockTracingTelemetry).close();
     }
 
+    public void testIterationScenario() throws IOException {
+        DefaultTracer defaultTracer = new DefaultTracer(mockTracingTelemetry, mockTracerContextStorage);
+        try (SpanScope parentSpanScope = defaultTracer.startSpan("parentSpan")) {
+            Span parentSpan = defaultTracer.getCurrentSpan().getParentSpan();
+            for (int i = 0; i < 3; i++) {
+                String spanName = "childSpan_" + i;
+                try (SpanScope child = defaultTracer.startSpan(spanName)) {
+                    assertEquals(parentSpan, defaultTracer.getCurrentSpan().getParentSpan());
+                }
+            }
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private void setupMocks() {
         mockTracingTelemetry = mock(TracingTelemetry.class);

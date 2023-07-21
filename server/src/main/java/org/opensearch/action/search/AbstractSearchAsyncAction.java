@@ -32,6 +32,7 @@
 
 package org.opensearch.action.search;
 
+import java.io.Closeable;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.opensearch.ExceptionsHelper;
@@ -58,6 +59,8 @@ import org.opensearch.search.internal.InternalSearchResponse;
 import org.opensearch.search.internal.SearchContext;
 import org.opensearch.search.internal.ShardSearchRequest;
 import org.opensearch.search.pipeline.PipelinedRequest;
+import org.opensearch.telemetry.tracing.SpanScope;
+import org.opensearch.telemetry.tracing.TracerFactory;
 import org.opensearch.transport.Transport;
 
 import java.util.ArrayDeque;
@@ -117,6 +120,7 @@ abstract class AbstractSearchAsyncAction<Result extends SearchPhaseResult> exten
     private final boolean throttleConcurrentRequests;
 
     private final List<Releasable> releasables = new ArrayList<>();
+    private final TracerFactory tracerFactory;
 
     AbstractSearchAsyncAction(
         String name,
@@ -135,7 +139,8 @@ abstract class AbstractSearchAsyncAction<Result extends SearchPhaseResult> exten
         SearchTask task,
         SearchPhaseResults<Result> resultConsumer,
         int maxConcurrentRequestsPerNode,
-        SearchResponse.Clusters clusters
+        SearchResponse.Clusters clusters,
+        TracerFactory tracerFactory
     ) {
         super(name);
         final List<SearchShardIterator> toSkipIterators = new ArrayList<>();
@@ -171,6 +176,7 @@ abstract class AbstractSearchAsyncAction<Result extends SearchPhaseResult> exten
         this.indexRoutings = indexRoutings;
         this.results = resultConsumer;
         this.clusters = clusters;
+        this.tracerFactory = tracerFactory;
     }
 
     @Override
@@ -278,12 +284,15 @@ abstract class AbstractSearchAsyncAction<Result extends SearchPhaseResult> exten
                 : null;
             Runnable r = () -> {
                 final Thread thread = Thread.currentThread();
-                try {
+                AutoCloseable a = tracerFactory.getTracer().newTracerContextStorage();
+                SpanScope spanScope = tracerFactory.getTracer().startSpan("performPhaseOnShard");
+                try(a) {
                     executePhaseOnShard(shardIt, shard, new SearchActionListener<Result>(shard, shardIndex) {
                         @Override
                         public void innerOnResponse(Result result) {
                             try {
                                 onShardResult(result, shardIt);
+                                spanScope.close();
                             } finally {
                                 executeNext(pendingExecutions, thread);
                             }
@@ -293,6 +302,8 @@ abstract class AbstractSearchAsyncAction<Result extends SearchPhaseResult> exten
                         public void onFailure(Exception t) {
                             try {
                                 onShardFailure(shardIndex, shard, shardIt, t);
+                                spanScope.setError(t);
+                                spanScope.close();
                             } finally {
                                 executeNext(pendingExecutions, thread);
                             }
@@ -315,6 +326,8 @@ abstract class AbstractSearchAsyncAction<Result extends SearchPhaseResult> exten
                             }
                         });
                     } finally {
+                        spanScope.setError(e);
+                        spanScope.close();
                         executeNext(pendingExecutions, thread);
                     }
                 }

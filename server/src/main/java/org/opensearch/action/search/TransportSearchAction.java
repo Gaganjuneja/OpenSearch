@@ -157,6 +157,7 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
     private final NamedWriteableRegistry namedWriteableRegistry;
     private final CircuitBreaker circuitBreaker;
     private final SearchPipelineService searchPipelineService;
+    private final TracerFactory tracerFactory;
 
     @Inject
     public TransportSearchAction(
@@ -174,7 +175,7 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
         SearchPipelineService searchPipelineService,
         TracerFactory tracerFactory
     ) {
-        super(SearchAction.NAME, transportService, actionFilters, (Writeable.Reader<SearchRequest>) SearchRequest::new);
+        super(SearchAction.NAME, transportService, actionFilters, (Writeable.Reader<SearchRequest>) SearchRequest::new, tracerFactory);
         this.client = client;
         this.threadPool = threadPool;
         this.circuitBreaker = circuitBreakerService.getBreaker(CircuitBreaker.REQUEST);
@@ -187,6 +188,7 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
         this.indexNameExpressionResolver = indexNameExpressionResolver;
         this.namedWriteableRegistry = namedWriteableRegistry;
         this.searchPipelineService = searchPipelineService;
+        this.tracerFactory = tracerFactory;
     }
 
     private Map<String, AliasFilter> buildPerIndexAliasFilter(
@@ -329,7 +331,8 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
                 ActionListener<SearchResponse> listener,
                 boolean preFilter,
                 ThreadPool threadPool,
-                SearchResponse.Clusters clusters
+                SearchResponse.Clusters clusters,
+                TracerFactory tracerFactory
             ) {
                 return new AbstractSearchAsyncAction<SearchPhaseResult>(
                     actionName,
@@ -348,7 +351,8 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
                     task,
                     new ArraySearchPhaseResults<>(shardsIts.size()),
                     searchRequest.getMaxConcurrentShardRequests(),
-                    clusters
+                    clusters,
+                    tracerFactory
                 ) {
                     @Override
                     protected void executePhaseOnShard(
@@ -1022,7 +1026,8 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
             listener,
             preFilterSearchShards,
             threadPool,
-            clusters
+            clusters,
+            tracerFactory
         ).start();
     }
 
@@ -1105,7 +1110,8 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
             ActionListener<SearchResponse> listener,
             boolean preFilter,
             ThreadPool threadPool,
-            SearchResponse.Clusters clusters
+            SearchResponse.Clusters clusters,
+            TracerFactory tracerFactory
         );
     }
 
@@ -1123,7 +1129,8 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
         ActionListener<SearchResponse> listener,
         boolean preFilter,
         ThreadPool threadPool,
-        SearchResponse.Clusters clusters
+        SearchResponse.Clusters clusters,
+        TracerFactory tracerFactory
     ) {
         if (preFilter) {
             return new CanMatchPreFilterSearchPhase(
@@ -1155,7 +1162,8 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
                         listener,
                         false,
                         threadPool,
-                        clusters
+                        clusters,
+                        tracerFactory
                     );
                     return new SearchPhase(action.getName()) {
                         @Override
@@ -1164,7 +1172,8 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
                         }
                     };
                 },
-                clusters
+                clusters,
+                tracerFactory
             );
         } else {
             final QueryPhaseResultConsumer queryResultConsumer = searchPhaseController.newSearchPhaseResults(
@@ -1194,7 +1203,8 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
                         timeProvider,
                         clusterState,
                         task,
-                        clusters
+                        clusters,
+                        tracerFactory
                     );
                     break;
                 case QUERY_THEN_FETCH:
@@ -1214,7 +1224,8 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
                         timeProvider,
                         clusterState,
                         task,
-                        clusters
+                        clusters,
+                        tracerFactory
                     );
                     break;
                 default:
