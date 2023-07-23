@@ -10,6 +10,7 @@ package org.opensearch.telemetry.tracing;
 
 import java.io.Closeable;
 import java.io.IOException;
+import org.opensearch.common.lease.Releasable;
 
 /**
  *
@@ -77,7 +78,7 @@ public class DefaultTracer implements Tracer {
     }
 
     @Override
-    public AutoCloseable newTracerContextStorage() {
+    public Releasable newTracerContextStorage() {
         return tracerContextStorage.newTracerContextStorage();
     }
 

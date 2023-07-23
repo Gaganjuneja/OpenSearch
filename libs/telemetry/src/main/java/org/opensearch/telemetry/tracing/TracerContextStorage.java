@@ -8,6 +8,8 @@
 
 package org.opensearch.telemetry.tracing;
 
+import org.opensearch.common.lease.Releasable;
+
 /**
  * Storage interface used for storing tracing context
  * @param <K> key type
@@ -37,7 +39,7 @@ public interface TracerContextStorage<K, V> {
      * newTracerContextStorage
      * @return newTracerContextStorage
      */
-    default AutoCloseable newTracerContextStorage() {
+    default Releasable newTracerContextStorage() {
         return null;
     }
 }

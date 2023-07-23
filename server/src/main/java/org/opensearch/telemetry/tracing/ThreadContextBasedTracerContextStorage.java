@@ -10,6 +10,7 @@ package org.opensearch.telemetry.tracing;
 
 import java.io.Closeable;
 import java.util.Arrays;
+import org.opensearch.common.lease.Releasable;
 import org.opensearch.common.util.concurrent.ThreadContext;
 import org.opensearch.common.util.concurrent.ThreadContextStatePropagator;
 
@@ -94,7 +95,7 @@ public class ThreadContextBasedTracerContextStorage implements TracerContextStor
     }
 
     @Override
-    public AutoCloseable newTracerContextStorage() {
+    public Releasable newTracerContextStorage() {
         ThreadContext.StoredContext newContext = threadContext.newStoredContext(true);
         return () -> newContext.close();
     }
