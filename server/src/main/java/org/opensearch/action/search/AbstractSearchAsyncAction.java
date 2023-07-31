@@ -60,7 +60,9 @@ import org.opensearch.search.internal.SearchContext;
 import org.opensearch.search.internal.ShardSearchRequest;
 import org.opensearch.search.pipeline.PipelinedRequest;
 import org.opensearch.telemetry.tracing.SpanScope;
+import org.opensearch.telemetry.tracing.TraceableRunnable;
 import org.opensearch.telemetry.tracing.TracerFactory;
+import org.opensearch.telemetry.tracing.listener.TracingAwareActionListenerWrapper;
 import org.opensearch.transport.Transport;
 
 import java.util.ArrayDeque;
@@ -282,11 +284,11 @@ abstract class AbstractSearchAsyncAction<Result extends SearchPhaseResult> exten
             final PendingExecutions pendingExecutions = throttleConcurrentRequests
                 ? pendingExecutionsPerNode.computeIfAbsent(shard.getNodeId(), n -> new PendingExecutions(maxConcurrentRequestsPerNode))
                 : null;
-            Runnable r = () -> {
+            Runnable r = new TraceableRunnable(tracerFactory, tracerFactory.getTracer().getCurrentSpan(), () -> {
                 final Thread thread = Thread.currentThread();
-                AutoCloseable a = tracerFactory.getTracer().newTracerContextStorage();
-                SpanScope spanScope = tracerFactory.getTracer().startSpan("performPhaseOnShard");
-                try(a) {
+                //AutoCloseable a = tracerFactory.getTracer().newTracerContextStorage();
+                final SpanScope spanScope = tracerFactory.getTracer().startSpan("performPhaseOnShard");
+                try {
                     executePhaseOnShard(shardIt, shard, new SearchActionListener<Result>(shard, shardIndex) {
                         @Override
                         public void innerOnResponse(Result result) {
@@ -326,12 +328,12 @@ abstract class AbstractSearchAsyncAction<Result extends SearchPhaseResult> exten
                             }
                         });
                     } finally {
-                        spanScope.setError(e);
-                        spanScope.close();
                         executeNext(pendingExecutions, thread);
                     }
+                    spanScope.setError(e);
+                    spanScope.close();
                 }
-            };
+            });
             if (throttleConcurrentRequests) {
                 pendingExecutions.tryRun(r);
             } else {

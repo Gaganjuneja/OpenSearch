@@ -38,7 +38,12 @@ public class DefaultTracer implements Tracer {
 
     @Override
     public SpanScope startSpan(String spanName) {
-        Span span = createSpan(spanName, getCurrentSpan());
+        return startSpan(null, spanName);
+    }
+
+    @Override
+    public SpanScope startSpan(Span parentSpan, String spanName) {
+        Span span = createSpan(spanName, parentSpan == null ? getCurrentSpan() : parentSpan);
         setCurrentSpanInContext(span);
         addDefaultAttributes(span);
         return new DefaultSpanScope(span, (scopeSpan) -> endSpan(scopeSpan));
@@ -50,7 +55,7 @@ public class DefaultTracer implements Tracer {
     }
 
     // Visible for testing
-    Span getCurrentSpan() {
+    public Span getCurrentSpan() {
         return tracerContextStorage.get(TracerContextStorage.CURRENT_SPAN);
     }
 

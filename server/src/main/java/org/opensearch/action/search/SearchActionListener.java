@@ -34,6 +34,8 @@ package org.opensearch.action.search;
 import org.opensearch.action.ActionListener;
 import org.opensearch.search.SearchPhaseResult;
 import org.opensearch.search.SearchShardTarget;
+import org.opensearch.telemetry.tracing.SpanScope;
+import org.opensearch.telemetry.tracing.listener.TracingAwareActionListenerWrapper;
 
 /**
  * A base action listener that ensures shard target and shard index is set on all responses
@@ -57,6 +59,7 @@ abstract class SearchActionListener<T extends SearchPhaseResult> implements Acti
         response.setShardIndex(requestIndex);
         setSearchShardTarget(response);
         innerOnResponse(response);
+
     }
 
     protected void setSearchShardTarget(T response) { // some impls need to override this
