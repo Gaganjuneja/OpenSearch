@@ -18,7 +18,7 @@ import org.opensearch.common.settings.Settings;
 public class TelemetrySettings {
     public static final Setting<Boolean> TRACER_ENABLED_SETTING = Setting.boolSetting(
         "telemetry.tracer.enabled",
-        false,
+        true,
         Setting.Property.NodeScope,
         Setting.Property.Dynamic
     );
@@ -28,7 +28,7 @@ public class TelemetrySettings {
     public TelemetrySettings(Settings settings, ClusterSettings clusterSettings) {
         this.tracingEnabled = TRACER_ENABLED_SETTING.get(settings);
 
-        clusterSettings.addSettingsUpdateConsumer(TRACER_ENABLED_SETTING, this::setTracingEnabled);
+        // clusterSettings.addSettingsUpdateConsumer(TRACER_ENABLED_SETTING, this::setTracingEnabled);
     }
 
     public void setTracingEnabled(boolean tracingEnabled) {
