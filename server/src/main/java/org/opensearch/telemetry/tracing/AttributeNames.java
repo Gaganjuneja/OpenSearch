@@ -16,45 +16,45 @@ public class AttributeNames {
     /**
      * HTTP Protocol Version
      */
-    public static final String SPAN_ATTR_KEY_HTTP_PROTOCOL_VERSION = "version";
+    public static final String HTTP_PROTOCOL_VERSION = "http.version";
 
     /**
      * HTTP method
      */
-    public static final String SPAN_ATTR_KEY_HTTP_METHOD = "method";
+    public static final String HTTP_METHOD = "http.method";
 
     /**
      * HTTP Request URI.
      */
-    public static final String SPAN_ATTR_KEY_HTTP_URI = "uri";
+    public static final String HTTP_URI = "http.uri";
 
     /**
      * HTTP REQ Inbound Exception.
      */
-    public static final String SPAN_ATTR_KEY_HTTP_REQ_INBOUND_EX = "req_inbound_ex";
+    public static final String HTTP_REQ_INBOUND_EX = "http.req_inbound_ex";
 
     /**
      * Rest Request ID.
      */
-    public static final String SPAN_ATTR_KEY_REST_REQ_ID = "request_id";
+    public static final String REST_REQ_ID = "rest.request_id";
 
     /**
      * Rest Request Raw Path.
      */
-    public static final String SPAN_ATTR_KEY_REST_REQ_RAW_PATH = "raw_path";
+    public static final String REST_REQ_RAW_PATH = "rest.raw_path";
 
     /**
-     * Trace key. To be used for on demaand sampling.
+     * Trace key. To be used for on demand sampling.
      */
-    public static final String SPAN_ATTR_KEY_TRACE = "trace";
+    public static final String TRACE = "trace";
 
     /**
      * Transport Service send request target host.
      */
-    public static final String SPAN_ATTR_KEY_TARGET_HOST = "target_host";
+    public static final String TRANSPORT_TARGET_HOST = "target_host";
 
     /**
      * Action Name.
      */
-    public static final String SPAN_ATTR_KEY_ACTION = "action";
+    public static final String TRANSPORT_ACTION = "action";
 }
