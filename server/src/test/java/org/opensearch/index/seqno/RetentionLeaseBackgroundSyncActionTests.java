@@ -49,6 +49,7 @@ import org.opensearch.gateway.WriteStateException;
 import org.opensearch.index.IndexService;
 import org.opensearch.index.shard.IndexShard;
 import org.opensearch.indices.IndicesService;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.test.transport.CapturingTransport;
 import org.opensearch.threadpool.TestThreadPool;
@@ -123,7 +124,8 @@ public class RetentionLeaseBackgroundSyncActionTests extends OpenSearchTestCase 
             indicesService,
             threadPool,
             shardStateAction,
-            new ActionFilters(Collections.emptySet())
+            new ActionFilters(Collections.emptySet()),
+            NoopTracer.INSTANCE
         );
         final RetentionLeases retentionLeases = mock(RetentionLeases.class);
         final RetentionLeaseBackgroundSyncAction.Request request = new RetentionLeaseBackgroundSyncAction.Request(
@@ -162,7 +164,8 @@ public class RetentionLeaseBackgroundSyncActionTests extends OpenSearchTestCase 
             indicesService,
             threadPool,
             shardStateAction,
-            new ActionFilters(Collections.emptySet())
+            new ActionFilters(Collections.emptySet()),
+            NoopTracer.INSTANCE
         );
         final RetentionLeases retentionLeases = mock(RetentionLeases.class);
         final RetentionLeaseBackgroundSyncAction.Request request = new RetentionLeaseBackgroundSyncAction.Request(
@@ -204,7 +207,8 @@ public class RetentionLeaseBackgroundSyncActionTests extends OpenSearchTestCase 
             indicesService,
             threadPool,
             shardStateAction,
-            new ActionFilters(Collections.emptySet())
+            new ActionFilters(Collections.emptySet()),
+            NoopTracer.INSTANCE
         );
 
         assertNull(action.indexBlockLevel());
@@ -232,7 +236,8 @@ public class RetentionLeaseBackgroundSyncActionTests extends OpenSearchTestCase 
             mock(IndicesService.class),
             threadPool,
             shardStateAction,
-            new ActionFilters(Collections.emptySet())
+            new ActionFilters(Collections.emptySet()),
+            NoopTracer.INSTANCE
         );
     }
 

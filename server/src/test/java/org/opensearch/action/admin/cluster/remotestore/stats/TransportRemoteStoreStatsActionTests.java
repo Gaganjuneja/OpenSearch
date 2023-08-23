@@ -32,6 +32,7 @@ import org.opensearch.index.remote.RemoteStorePressureService;
 import org.opensearch.index.shard.IndexShardTestCase;
 import org.opensearch.indices.IndicesService;
 import org.opensearch.indices.replication.common.ReplicationType;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.FeatureFlagSetter;
 import org.opensearch.test.transport.MockTransport;
 import org.opensearch.transport.TransportService;
@@ -99,7 +100,8 @@ public class TransportRemoteStoreStatsActionTests extends IndexShardTestCase {
             indicesService,
             mock(ActionFilters.class),
             mock(IndexNameExpressionResolver.class),
-            pressureService
+            pressureService,
+            NoopTracer.INSTANCE
         );
 
     }

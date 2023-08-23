@@ -62,6 +62,8 @@ import org.opensearch.core.indices.breaker.CircuitBreakerService;
 import org.opensearch.core.indices.breaker.NoneCircuitBreakerService;
 import org.opensearch.core.rest.RestStatus;
 import org.opensearch.tasks.Task;
+import org.opensearch.telemetry.tracing.Tracer;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.threadpool.TestThreadPool;
 import org.opensearch.threadpool.ThreadPool;
@@ -134,7 +136,8 @@ public class BroadcastReplicationTests extends OpenSearchTestCase {
             transportService,
             new ActionFilters(new HashSet<>()),
             new IndexNameExpressionResolver(new ThreadContext(Settings.EMPTY)),
-            null
+            null,
+            NoopTracer.INSTANCE
         );
     }
 
@@ -267,7 +270,8 @@ public class BroadcastReplicationTests extends OpenSearchTestCase {
             TransportService transportService,
             ActionFilters actionFilters,
             IndexNameExpressionResolver indexNameExpressionResolver,
-            TransportReplicationAction<BasicReplicationRequest, BasicReplicationRequest, ReplicationResponse> action
+            TransportReplicationAction<BasicReplicationRequest, BasicReplicationRequest, ReplicationResponse> action,
+            Tracer tracer
         ) {
             super(
                 "internal:test-broadcast-replication-action",
@@ -276,7 +280,8 @@ public class BroadcastReplicationTests extends OpenSearchTestCase {
                 transportService,
                 actionFilters,
                 indexNameExpressionResolver,
-                action
+                action,
+                tracer
             );
         }
 

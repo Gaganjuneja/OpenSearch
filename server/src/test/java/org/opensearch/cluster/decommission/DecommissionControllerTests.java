@@ -28,6 +28,7 @@ import org.opensearch.common.settings.Settings;
 import org.opensearch.common.unit.TimeValue;
 import org.opensearch.common.util.concurrent.ThreadContext;
 import org.opensearch.core.action.ActionListener;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.test.transport.MockTransport;
 import org.opensearch.threadpool.TestThreadPool;
@@ -105,7 +106,8 @@ public class DecommissionControllerTests extends OpenSearchTestCase {
             clusterService,
             threadPool,
             new ActionFilters(emptySet()),
-            new IndexNameExpressionResolver(new ThreadContext(Settings.EMPTY))
+            new IndexNameExpressionResolver(new ThreadContext(Settings.EMPTY)),
+            NoopTracer.INSTANCE
         ); // registers action
 
         new TransportClearVotingConfigExclusionsAction(
@@ -113,7 +115,8 @@ public class DecommissionControllerTests extends OpenSearchTestCase {
             clusterService,
             threadPool,
             new ActionFilters(emptySet()),
-            new IndexNameExpressionResolver(new ThreadContext(Settings.EMPTY))
+            new IndexNameExpressionResolver(new ThreadContext(Settings.EMPTY)),
+            NoopTracer.INSTANCE
         ); // registers action
 
         transportService.start();

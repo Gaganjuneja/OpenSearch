@@ -32,6 +32,7 @@ import org.opensearch.identity.IdentityService;
 import org.opensearch.rest.NamedRoute;
 import org.opensearch.rest.RestHandler.Route;
 import org.opensearch.rest.RestRequest.Method;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.test.transport.MockTransportService;
 import org.opensearch.threadpool.TestThreadPool;
@@ -382,7 +383,13 @@ public class RestSendToExtensionActionTests extends OpenSearchTestCase {
         DynamicActionRegistry dynamicActionRegistry = actionModule.getDynamicActionRegistry();
         ActionFilters emptyFilters = new ActionFilters(Collections.emptySet());
         ExtensionAction testExtensionAction = new ExtensionAction("extensionId", "test:action/name");
-        ExtensionTransportAction testExtensionTransportAction = new ExtensionTransportAction("test:action/name", emptyFilters, null, null);
+        ExtensionTransportAction testExtensionTransportAction = new ExtensionTransportAction(
+            "test:action/name",
+            emptyFilters,
+            null,
+            null,
+            NoopTracer.INSTANCE
+        );
         assertNull(dynamicActionRegistry.get(testExtensionAction));
         dynamicActionRegistry.registerDynamicAction(testExtensionAction, testExtensionTransportAction);
 

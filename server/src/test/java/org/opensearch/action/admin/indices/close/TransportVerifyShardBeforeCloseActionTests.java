@@ -62,6 +62,7 @@ import org.opensearch.core.transport.TransportResponse;
 import org.opensearch.index.shard.IndexShard;
 import org.opensearch.index.shard.ReplicationGroup;
 import org.opensearch.indices.IndicesService;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.test.transport.CapturingTransport;
 import org.opensearch.threadpool.TestThreadPool;
@@ -152,7 +153,8 @@ public class TransportVerifyShardBeforeCloseActionTests extends OpenSearchTestCa
             mock(IndicesService.class),
             mock(ThreadPool.class),
             shardStateAction,
-            mock(ActionFilters.class)
+            mock(ActionFilters.class),
+            NoopTracer.INSTANCE
         );
     }
 
@@ -349,7 +351,8 @@ public class TransportVerifyShardBeforeCloseActionTests extends OpenSearchTestCa
             mock(IndicesService.class),
             mock(ThreadPool.class),
             mock(ShardStateAction.class),
-            mock(ActionFilters.class)
+            mock(ActionFilters.class),
+            NoopTracer.INSTANCE
         );
     }
 

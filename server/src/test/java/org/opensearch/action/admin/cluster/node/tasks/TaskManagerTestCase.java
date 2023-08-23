@@ -60,6 +60,7 @@ import org.opensearch.core.indices.breaker.NoneCircuitBreakerService;
 import org.opensearch.tasks.TaskCancellationService;
 import org.opensearch.tasks.TaskManager;
 import org.opensearch.tasks.TaskResourceTrackingService;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.test.tasks.MockTaskManager;
 import org.opensearch.threadpool.RunnableTaskExecutionListener;
@@ -176,7 +177,8 @@ public abstract class TaskManagerTestCase extends OpenSearchTestCase {
                 request,
                 nodeRequest,
                 ThreadPool.Names.GENERIC,
-                NodeResponse.class
+                NodeResponse.class,
+                NoopTracer.INSTANCE
             );
         }
 
@@ -243,9 +245,15 @@ public abstract class TaskManagerTestCase extends OpenSearchTestCase {
                 clusterService,
                 transportService,
                 actionFilters,
-                taskResourceTrackingService
+                taskResourceTrackingService,
+                NoopTracer.INSTANCE
             );
-            transportCancelTasksAction = new TransportCancelTasksAction(clusterService, transportService, actionFilters);
+            transportCancelTasksAction = new TransportCancelTasksAction(
+                clusterService,
+                transportService,
+                actionFilters,
+                NoopTracer.INSTANCE
+            );
             transportService.acceptIncomingRequests();
         }
 

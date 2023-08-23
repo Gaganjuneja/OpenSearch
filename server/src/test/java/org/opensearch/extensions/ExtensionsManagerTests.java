@@ -45,6 +45,7 @@ import org.opensearch.extensions.settings.RegisterCustomSettingsRequest;
 import org.opensearch.identity.IdentityService;
 import org.opensearch.plugins.ExtensionAwarePlugin;
 import org.opensearch.rest.RestController;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.FeatureFlagSetter;
 import org.opensearch.test.MockLogAppender;
 import org.opensearch.test.OpenSearchTestCase;
@@ -771,7 +772,8 @@ public class ExtensionsManagerTests extends OpenSearchTestCase {
             clusterService,
             settings,
             client,
-            identityService
+            identityService,
+            NoopTracer.INSTANCE
         );
         verify(mockTransportService, times(9)).registerRequestHandler(anyString(), anyString(), anyBoolean(), anyBoolean(), any(), any());
 
@@ -889,7 +891,8 @@ public class ExtensionsManagerTests extends OpenSearchTestCase {
             clusterService,
             settings,
             client,
-            identityService
+            identityService,
+            NoopTracer.INSTANCE
         );
     }
 }

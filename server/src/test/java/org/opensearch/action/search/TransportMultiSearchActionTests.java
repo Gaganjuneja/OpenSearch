@@ -51,6 +51,7 @@ import org.opensearch.core.action.ActionListener;
 import org.opensearch.search.internal.InternalSearchResponse;
 import org.opensearch.tasks.Task;
 import org.opensearch.tasks.TaskManager;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.Transport;
@@ -126,7 +127,8 @@ public class TransportMultiSearchActionTests extends OpenSearchTestCase {
                 clusterService,
                 10,
                 System::nanoTime,
-                client
+                client,
+                NoopTracer.INSTANCE
             );
 
             PlainActionFuture<MultiSearchResponse> future = newFuture();
@@ -219,7 +221,8 @@ public class TransportMultiSearchActionTests extends OpenSearchTestCase {
             clusterService,
             10,
             System::nanoTime,
-            client
+            client,
+            NoopTracer.INSTANCE
         );
 
         // Execute the multi search api and fail if we find an error after executing:

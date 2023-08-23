@@ -27,6 +27,7 @@ import org.opensearch.index.query.MatchAllQueryBuilder;
 import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.index.query.TermQueryBuilder;
 import org.opensearch.tasks.Task;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.test.transport.MockTransportService;
 import org.opensearch.threadpool.ThreadPool;
@@ -172,7 +173,8 @@ public class TransportDeletePitActionTests extends OpenSearchTestCase {
                     transportService,
                     actionFilters,
                     namedWriteableRegistry,
-                    pitService
+                    pitService,
+                    NoopTracer.INSTANCE
                 );
                 DeletePitRequest deletePITRequest = new DeletePitRequest(pitId);
                 PlainActionFuture<DeletePitResponse> future = newFuture();
@@ -247,7 +249,8 @@ public class TransportDeletePitActionTests extends OpenSearchTestCase {
                     transportService,
                     actionFilters,
                     namedWriteableRegistry,
-                    pitService
+                    pitService,
+                    NoopTracer.INSTANCE
                 );
                 DeletePitRequest deletePITRequest = new DeletePitRequest("_all");
                 PlainActionFuture<DeletePitResponse> future = newFuture();
@@ -313,7 +316,8 @@ public class TransportDeletePitActionTests extends OpenSearchTestCase {
                     transportService,
                     actionFilters,
                     namedWriteableRegistry,
-                    pitService
+                    pitService,
+                    NoopTracer.INSTANCE
                 );
                 DeletePitRequest deletePITRequest = new DeletePitRequest(pitId);
                 PlainActionFuture<DeletePitResponse> future = newFuture();
@@ -369,7 +373,8 @@ public class TransportDeletePitActionTests extends OpenSearchTestCase {
                     transportService,
                     actionFilters,
                     namedWriteableRegistry,
-                    pitService
+                    pitService,
+                    NoopTracer.INSTANCE
                 );
                 DeletePitRequest deletePITRequest = new DeletePitRequest(pitId);
                 PlainActionFuture<DeletePitResponse> future = newFuture();
@@ -434,7 +439,8 @@ public class TransportDeletePitActionTests extends OpenSearchTestCase {
                     transportService,
                     actionFilters,
                     namedWriteableRegistry,
-                    pitService
+                    pitService,
+                    NoopTracer.INSTANCE
                 );
                 DeletePitRequest deletePITRequest = new DeletePitRequest(pitId);
                 PlainActionFuture<DeletePitResponse> future = newFuture();
@@ -511,7 +517,8 @@ public class TransportDeletePitActionTests extends OpenSearchTestCase {
                     transportService,
                     actionFilters,
                     namedWriteableRegistry,
-                    pitService
+                    pitService,
+                    NoopTracer.INSTANCE
                 );
                 DeletePitRequest deletePITRequest = new DeletePitRequest("_all");
                 PlainActionFuture<DeletePitResponse> future = newFuture();
@@ -584,7 +591,8 @@ public class TransportDeletePitActionTests extends OpenSearchTestCase {
                     transportService,
                     actionFilters,
                     namedWriteableRegistry,
-                    pitService
+                    pitService,
+                    NoopTracer.INSTANCE
                 );
                 DeletePitRequest deletePITRequest = new DeletePitRequest("_all");
                 PlainActionFuture<DeletePitResponse> future = newFuture();
@@ -661,7 +669,8 @@ public class TransportDeletePitActionTests extends OpenSearchTestCase {
                     transportService,
                     actionFilters,
                     namedWriteableRegistry,
-                    pitService
+                    pitService,
+                    NoopTracer.INSTANCE
                 );
                 DeletePitRequest deletePITRequest = new DeletePitRequest("_all");
                 PlainActionFuture<DeletePitResponse> future = newFuture();

@@ -30,6 +30,7 @@ import org.opensearch.cluster.routing.allocation.decider.AwarenessAllocationDeci
 import org.opensearch.cluster.service.ClusterService;
 import org.opensearch.common.settings.ClusterSettings;
 import org.opensearch.common.settings.Settings;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.ClusterServiceUtils;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.test.transport.MockTransport;
@@ -109,7 +110,8 @@ public class TransportGetWeightedRoutingActionTests extends OpenSearchTestCase {
             weightedRoutingService,
             threadPool,
             new ActionFilters(emptySet()),
-            mock(IndexNameExpressionResolver.class)
+            mock(IndexNameExpressionResolver.class),
+            NoopTracer.INSTANCE
         );
         client = new NodeClient(Settings.EMPTY, threadPool);
     }

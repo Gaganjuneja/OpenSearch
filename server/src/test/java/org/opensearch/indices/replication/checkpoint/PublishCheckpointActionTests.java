@@ -25,6 +25,7 @@ import org.opensearch.index.IndexService;
 import org.opensearch.index.shard.IndexShard;
 import org.opensearch.indices.IndicesService;
 import org.opensearch.indices.replication.SegmentReplicationTargetService;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.test.transport.CapturingTransport;
 import org.opensearch.threadpool.TestThreadPool;
@@ -102,7 +103,8 @@ public class PublishCheckpointActionTests extends OpenSearchTestCase {
             threadPool,
             shardStateAction,
             new ActionFilters(Collections.emptySet()),
-            mockTargetService
+            mockTargetService,
+            NoopTracer.INSTANCE
         );
 
         final ReplicationCheckpoint checkpoint = new ReplicationCheckpoint(indexShard.shardId(), 1111, 11, 1, Codec.getDefault().getName());
@@ -137,7 +139,8 @@ public class PublishCheckpointActionTests extends OpenSearchTestCase {
             threadPool,
             shardStateAction,
             new ActionFilters(Collections.emptySet()),
-            mockTargetService
+            mockTargetService,
+            NoopTracer.INSTANCE
         );
 
         final ReplicationCheckpoint checkpoint = new ReplicationCheckpoint(indexShard.shardId(), 1111, 11, 1, Codec.getDefault().getName());
@@ -181,7 +184,8 @@ public class PublishCheckpointActionTests extends OpenSearchTestCase {
             threadPool,
             shardStateAction,
             new ActionFilters(Collections.emptySet()),
-            mock(SegmentReplicationTargetService.class)
+            mock(SegmentReplicationTargetService.class),
+            NoopTracer.INSTANCE
         );
     }
 

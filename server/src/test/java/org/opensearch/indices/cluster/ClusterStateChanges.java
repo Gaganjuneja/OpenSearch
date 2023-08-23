@@ -108,6 +108,7 @@ import org.opensearch.indices.IndicesService;
 import org.opensearch.indices.ShardLimitValidator;
 import org.opensearch.indices.SystemIndices;
 import org.opensearch.snapshots.EmptySnapshotsInfoService;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.gateway.TestGatewayAllocator;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.Transport;
@@ -256,7 +257,8 @@ public class ClusterStateChanges {
             indicesService,
             threadPool,
             null,
-            actionFilters
+            actionFilters,
+            NoopTracer.INSTANCE
         );
         TransportVerifyShardIndexBlockAction transportVerifyShardIndexBlockAction = new TransportVerifyShardIndexBlockAction(
             SETTINGS,
@@ -265,7 +267,8 @@ public class ClusterStateChanges {
             indicesService,
             threadPool,
             null,
-            actionFilters
+            actionFilters,
+            NoopTracer.INSTANCE
         );
         final SystemIndices systemIndices = new SystemIndices(emptyMap());
         ShardLimitValidator shardLimitValidator = new ShardLimitValidator(SETTINGS, clusterService, systemIndices);
@@ -317,7 +320,8 @@ public class ClusterStateChanges {
             clusterSettings,
             actionFilters,
             indexNameExpressionResolver,
-            destructiveOperations
+            destructiveOperations,
+            NoopTracer.INSTANCE
         );
         transportOpenIndexAction = new TransportOpenIndexAction(
             transportService,
@@ -326,7 +330,8 @@ public class ClusterStateChanges {
             indexStateService,
             actionFilters,
             indexNameExpressionResolver,
-            destructiveOperations
+            destructiveOperations,
+            NoopTracer.INSTANCE
         );
         transportDeleteIndexAction = new TransportDeleteIndexAction(
             transportService,
@@ -335,7 +340,8 @@ public class ClusterStateChanges {
             deleteIndexService,
             actionFilters,
             indexNameExpressionResolver,
-            destructiveOperations
+            destructiveOperations,
+            NoopTracer.INSTANCE
         );
         transportUpdateSettingsAction = new TransportUpdateSettingsAction(
             transportService,
@@ -343,7 +349,8 @@ public class ClusterStateChanges {
             threadPool,
             metadataUpdateSettingsService,
             actionFilters,
-            indexNameExpressionResolver
+            indexNameExpressionResolver,
+            NoopTracer.INSTANCE
         );
         transportClusterRerouteAction = new TransportClusterRerouteAction(
             transportService,
@@ -351,7 +358,9 @@ public class ClusterStateChanges {
             threadPool,
             allocationService,
             actionFilters,
-            indexNameExpressionResolver
+            indexNameExpressionResolver,
+            NoopTracer.INSTANCE
+
         );
         transportCreateIndexAction = new TransportCreateIndexAction(
             transportService,
@@ -359,7 +368,8 @@ public class ClusterStateChanges {
             threadPool,
             createIndexService,
             actionFilters,
-            indexNameExpressionResolver
+            indexNameExpressionResolver,
+            NoopTracer.INSTANCE
         );
 
         nodeRemovalExecutor = new NodeRemovalClusterStateTaskExecutor(allocationService, logger);

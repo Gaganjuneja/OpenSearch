@@ -59,6 +59,7 @@ import org.opensearch.common.settings.Settings;
 import org.opensearch.common.util.concurrent.ThreadContext;
 import org.opensearch.common.util.set.Sets;
 import org.opensearch.core.common.io.stream.StreamInput;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.test.gateway.TestGatewayAllocator;
 import org.opensearch.test.transport.CapturingTransport;
@@ -177,7 +178,8 @@ public class ClusterStateHealthTests extends OpenSearchTestCase {
             new ActionFilters(new HashSet<>()),
             indexNameExpressionResolver,
             new AllocationService(null, new TestGatewayAllocator(), null, null, null),
-            null
+            null,
+            NoopTracer.INSTANCE
         );
         PlainActionFuture<ClusterHealthResponse> listener = new PlainActionFuture<>();
         action.execute(new ClusterHealthRequest().waitForGreenStatus(), listener);

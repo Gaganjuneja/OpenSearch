@@ -57,6 +57,7 @@ import org.opensearch.core.common.io.stream.StreamOutput;
 import org.opensearch.core.common.io.stream.Writeable;
 import org.opensearch.core.index.shard.ShardId;
 import org.opensearch.core.rest.RestStatus;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.test.transport.CapturingTransport;
 import org.opensearch.threadpool.TestThreadPool;
@@ -128,7 +129,8 @@ public class TransportInstanceSingleOperationActionTests extends OpenSearchTestC
                 transportService,
                 actionFilters,
                 indexNameExpressionResolver,
-                request
+                request,
+                NoopTracer.INSTANCE
             );
         }
 

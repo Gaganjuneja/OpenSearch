@@ -44,6 +44,7 @@ import org.opensearch.common.settings.Settings;
 import org.opensearch.core.action.ActionListener;
 import org.opensearch.core.rest.RestStatus;
 import org.opensearch.tasks.Task;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.transport.Transport;
 import org.opensearch.transport.TransportService;
@@ -111,7 +112,13 @@ public class MainActionTests extends OpenSearchTestCase {
             null,
             Collections.emptySet()
         );
-        TransportMainAction action = new TransportMainAction(settings, transportService, mock(ActionFilters.class), clusterService);
+        TransportMainAction action = new TransportMainAction(
+            settings,
+            transportService,
+            mock(ActionFilters.class),
+            clusterService,
+            NoopTracer.INSTANCE
+        );
         AtomicReference<MainResponse> responseRef = new AtomicReference<>();
         action.doExecute(mock(Task.class), new MainRequest(), new ActionListener<MainResponse>() {
             @Override

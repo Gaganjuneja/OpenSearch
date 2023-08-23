@@ -61,6 +61,7 @@ import org.opensearch.core.xcontent.MediaTypeRegistry;
 import org.opensearch.indices.IndicesService;
 import org.opensearch.tasks.Task;
 import org.opensearch.tasks.TaskManager;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.threadpool.TestThreadPool;
 import org.opensearch.threadpool.ThreadPool;
@@ -203,7 +204,8 @@ public class TransportMultiTermVectorsActionTests extends OpenSearchTestCase {
             mock(IndicesService.class),
             threadPool,
             new ActionFilters(emptySet()),
-            new Resolver()
+            new Resolver(),
+            NoopTracer.INSTANCE
         ) {
             @Override
             protected void doExecute(
@@ -237,7 +239,8 @@ public class TransportMultiTermVectorsActionTests extends OpenSearchTestCase {
             clusterService,
             shardAction,
             new ActionFilters(emptySet()),
-            new Resolver()
+            new Resolver(),
+            NoopTracer.INSTANCE
         ) {
             @Override
             protected void executeShardAction(
@@ -269,7 +272,8 @@ public class TransportMultiTermVectorsActionTests extends OpenSearchTestCase {
             clusterService,
             shardAction,
             new ActionFilters(emptySet()),
-            new Resolver()
+            new Resolver(),
+            NoopTracer.INSTANCE
         ) {
             @Override
             protected void executeShardAction(

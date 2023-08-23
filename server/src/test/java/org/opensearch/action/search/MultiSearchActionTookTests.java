@@ -49,6 +49,7 @@ import org.opensearch.core.action.ActionListener;
 import org.opensearch.search.internal.InternalSearchResponse;
 import org.opensearch.tasks.Task;
 import org.opensearch.tasks.TaskManager;
+import org.opensearch.telemetry.tracing.noop.NoopTracer;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.threadpool.TestThreadPool;
 import org.opensearch.threadpool.ThreadPool;
@@ -206,7 +207,8 @@ public class MultiSearchActionTookTests extends OpenSearchTestCase {
                 clusterService,
                 availableProcessors,
                 expected::get,
-                client
+                client,
+                NoopTracer.INSTANCE
             ) {
                 @Override
                 void executeSearch(
@@ -228,7 +230,8 @@ public class MultiSearchActionTookTests extends OpenSearchTestCase {
                 clusterService,
                 availableProcessors,
                 System::nanoTime,
-                client
+                client,
+                NoopTracer.INSTANCE
             ) {
                 @Override
                 void executeSearch(
