@@ -29,11 +29,6 @@ public class AttributeNames {
     public static final String HTTP_URI = "http.uri";
 
     /**
-     * HTTP REQ Inbound Exception.
-     */
-    public static final String HTTP_REQ_INBOUND_EX = "http.req_inbound_ex";
-
-    /**
      * Rest Request ID.
      */
     public static final String REST_REQ_ID = "rest.request_id";
