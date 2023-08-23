@@ -2002,7 +2002,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                     indexNameExpressionResolver,
                     repositoriesService,
                     transportService,
-                    actionFilters
+                    actionFilters,
+                    NoopTracer.INSTANCE
                 );
                 nodeEnv = new NodeEnvironment(settings, environment);
                 final NamedXContentRegistry namedXContentRegistry = new NamedXContentRegistry(Collections.emptyList());
@@ -2113,7 +2114,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                             shardStateAction,
                             actionFilters,
                             new IndexingPressureService(settings, clusterService),
-                            new SystemIndices(emptyMap())
+                            new SystemIndices(emptyMap()),
+                            NoopTracer.INSTANCE
                         )
                     ),
                     new GlobalCheckpointSyncAction(
@@ -2123,7 +2125,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         indicesService,
                         threadPool,
                         shardStateAction,
-                        actionFilters
+                        actionFilters,
+                        NoopTracer.INSTANCE
                     ),
                     RetentionLeaseSyncer.EMPTY,
                     SegmentReplicationCheckpointPublisher.EMPTY,
@@ -2155,7 +2158,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         threadPool,
                         metadataCreateIndexService,
                         actionFilters,
-                        indexNameExpressionResolver
+                        indexNameExpressionResolver,
+                        NoopTracer.INSTANCE
                     )
                 );
                 final MappingUpdatedAction mappingUpdatedAction = new MappingUpdatedAction(settings, clusterSettings, clusterService);
@@ -2179,7 +2183,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         mock(ThreadPool.class)
                     ),
                     mock(RemoteStorePressureService.class),
-                    new SystemIndices(emptyMap())
+                    new SystemIndices(emptyMap()),
+                    NoopTracer.INSTANCE
                 );
                 actions.put(
                     BulkAction.INSTANCE,
@@ -2202,7 +2207,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         indexNameExpressionResolver,
                         new AutoCreateIndex(settings, clusterSettings, indexNameExpressionResolver, new SystemIndices(emptyMap())),
                         new IndexingPressureService(settings, clusterService),
-                        new SystemIndices(emptyMap())
+                        new SystemIndices(emptyMap()),
+                        NoopTracer.INSTANCE
                     )
                 );
                 final RestoreService restoreService = new RestoreService(
@@ -2231,7 +2237,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         metadataMappingService,
                         actionFilters,
                         indexNameExpressionResolver,
-                        new RequestValidators<>(Collections.emptyList())
+                        new RequestValidators<>(Collections.emptyList()),
+                        NoopTracer.INSTANCE
                     )
                 );
                 actions.put(
@@ -2242,7 +2249,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         threadPool,
                         metadataMappingService,
                         actionFilters,
-                        indexNameExpressionResolver
+                        indexNameExpressionResolver,
+                        NoopTracer.INSTANCE
                     )
                 );
                 final ResponseCollectorService responseCollectorService = new ResponseCollectorService(clusterService);
@@ -2290,7 +2298,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                             namedWriteableRegistry,
                             List.of(),
                             client
-                        )
+                        ),
+                        NoopTracer.INSTANCE
                     )
                 );
                 actions.put(
@@ -2301,7 +2310,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         threadPool,
                         restoreService,
                         actionFilters,
-                        indexNameExpressionResolver
+                        indexNameExpressionResolver,
+                        NoopTracer.INSTANCE
                     )
                 );
                 actions.put(
@@ -2313,7 +2323,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         new MetadataDeleteIndexService(settings, clusterService, allocationService),
                         actionFilters,
                         indexNameExpressionResolver,
-                        new DestructiveOperations(settings, clusterSettings)
+                        new DestructiveOperations(settings, clusterSettings),
+                        NoopTracer.INSTANCE
                     )
                 );
                 actions.put(
@@ -2324,7 +2335,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         repositoriesService,
                         threadPool,
                         actionFilters,
-                        indexNameExpressionResolver
+                        indexNameExpressionResolver,
+                        NoopTracer.INSTANCE
                     )
                 );
                 actions.put(
@@ -2336,7 +2348,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         snapshotsService,
                         threadPool,
                         actionFilters,
-                        indexNameExpressionResolver
+                        indexNameExpressionResolver,
+                        NoopTracer.INSTANCE
                     )
                 );
                 actions.put(
@@ -2347,7 +2360,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         threadPool,
                         snapshotsService,
                         actionFilters,
-                        indexNameExpressionResolver
+                        indexNameExpressionResolver,
+                        NoopTracer.INSTANCE
                     )
                 );
                 actions.put(
@@ -2358,7 +2372,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         threadPool,
                         allocationService,
                         actionFilters,
-                        indexNameExpressionResolver
+                        indexNameExpressionResolver,
+                        NoopTracer.INSTANCE
                     )
                 );
                 actions.put(
@@ -2369,7 +2384,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         threadPool,
                         repositoriesService,
                         actionFilters,
-                        indexNameExpressionResolver
+                        indexNameExpressionResolver,
+                        NoopTracer.INSTANCE
                     )
                 );
                 actions.put(
@@ -2379,7 +2395,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         clusterService,
                         threadPool,
                         actionFilters,
-                        indexNameExpressionResolver
+                        indexNameExpressionResolver,
+                        NoopTracer.INSTANCE
                     )
                 );
                 actions.put(
@@ -2398,8 +2415,10 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                             actionFilters,
                             nodeEnv,
                             indicesService,
-                            namedXContentRegistry
-                        )
+                            namedXContentRegistry,
+                            NoopTracer.INSTANCE
+                        ),
+                        NoopTracer.INSTANCE
                     )
                 );
                 actions.put(
@@ -2410,7 +2429,8 @@ public class SnapshotResiliencyTests extends OpenSearchTestCase {
                         threadPool,
                         snapshotsService,
                         actionFilters,
-                        indexNameExpressionResolver
+                        indexNameExpressionResolver,
+                        NoopTracer.INSTANCE
                     )
                 );
                 DynamicActionRegistry dynamicActionRegistry = new DynamicActionRegistry();

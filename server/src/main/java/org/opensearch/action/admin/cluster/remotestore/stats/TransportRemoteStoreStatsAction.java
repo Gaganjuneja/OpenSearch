@@ -28,6 +28,7 @@ import org.opensearch.index.remote.RemoteStorePressureService;
 import org.opensearch.index.shard.IndexShard;
 import org.opensearch.index.shard.ShardNotFoundException;
 import org.opensearch.indices.IndicesService;
+import org.opensearch.telemetry.tracing.Tracer;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.TransportService;
 
@@ -59,7 +60,8 @@ public class TransportRemoteStoreStatsAction extends TransportBroadcastByNodeAct
         IndicesService indicesService,
         ActionFilters actionFilters,
         IndexNameExpressionResolver indexNameExpressionResolver,
-        RemoteStorePressureService remoteStorePressureService
+        RemoteStorePressureService remoteStorePressureService,
+        Tracer tracer
     ) {
         super(
             RemoteStoreStatsAction.NAME,
@@ -68,7 +70,8 @@ public class TransportRemoteStoreStatsAction extends TransportBroadcastByNodeAct
             actionFilters,
             indexNameExpressionResolver,
             RemoteStoreStatsRequest::new,
-            ThreadPool.Names.MANAGEMENT
+            ThreadPool.Names.MANAGEMENT,
+            tracer
         );
         this.indicesService = indicesService;
         this.remoteStorePressureService = remoteStorePressureService;

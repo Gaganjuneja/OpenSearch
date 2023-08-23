@@ -847,6 +847,19 @@ public class Node implements Closeable {
                 clusterService.getClusterSettings(),
                 tracer
             );
+
+            TracerFactory tracerFactory;
+            if (FeatureFlags.isEnabled(TELEMETRY)) {
+                final TelemetrySettings telemetrySettings = new TelemetrySettings(settings, clusterService.getClusterSettings());
+                List<TelemetryPlugin> telemetryPlugins = pluginsService.filterPlugins(TelemetryPlugin.class);
+                TelemetryModule telemetryModule = new TelemetryModule(telemetryPlugins, telemetrySettings);
+                tracerFactory = new TracerFactory(telemetrySettings, telemetryModule.getTelemetry(), threadPool.getThreadContext());
+            } else {
+                tracerFactory = new NoopTracerFactory();
+            }
+            tracer = tracerFactory.getTracer();
+            resourcesToClose.add(tracer::close);
+
             Collection<UnaryOperator<Map<String, IndexTemplateMetadata>>> indexTemplateMetadataUpgraders = pluginsService.filterPlugins(
                 Plugin.class
             ).stream().map(Plugin::getIndexTemplateMetadataUpgrader).collect(Collectors.toList());
@@ -887,7 +900,8 @@ public class Node implements Closeable {
                 clusterService,
                 environment.settings(),
                 client,
-                identityService
+                identityService,
+                tracer
             );
             final GatewayMetaState gatewayMetaState = new GatewayMetaState();
             final ResponseCollectorService responseCollectorService = new ResponseCollectorService(clusterService);
@@ -937,7 +951,8 @@ public class Node implements Closeable {
                 clusterModule.getIndexNameExpressionResolver(),
                 repositoryService,
                 transportService,
-                actionModule.getActionFilters()
+                actionModule.getActionFilters(),
+                tracer
             );
             SnapshotShardsService snapshotShardsService = new SnapshotShardsService(
                 settings,
@@ -951,7 +966,8 @@ public class Node implements Closeable {
                 clusterService,
                 transportService,
                 snapshotShardsService,
-                actionModule.getActionFilters()
+                actionModule.getActionFilters(),
+                tracer
             );
             RestoreService restoreService = new RestoreService(
                 clusterService,

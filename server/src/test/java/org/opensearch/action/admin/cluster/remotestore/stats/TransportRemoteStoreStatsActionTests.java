@@ -101,7 +101,8 @@ public class TransportRemoteStoreStatsActionTests extends IndexShardTestCase {
             indicesService,
             mock(ActionFilters.class),
             mock(IndexNameExpressionResolver.class),
-            pressureService
+            pressureService,
+            NoopTracer.INSTANCE
         );
 
     }

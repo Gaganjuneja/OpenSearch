@@ -57,6 +57,7 @@ import org.opensearch.index.IndexNotFoundException;
 import org.opensearch.index.IndexSettings;
 import org.opensearch.index.shard.DocsStats;
 import org.opensearch.index.store.StoreStats;
+import org.opensearch.telemetry.tracing.Tracer;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.TransportService;
 
@@ -83,7 +84,8 @@ public class TransportResizeAction extends TransportClusterManagerNodeAction<Res
         MetadataCreateIndexService createIndexService,
         ActionFilters actionFilters,
         IndexNameExpressionResolver indexNameExpressionResolver,
-        Client client
+        Client client,
+        Tracer tracer
     ) {
         this(
             ResizeAction.NAME,
@@ -93,7 +95,8 @@ public class TransportResizeAction extends TransportClusterManagerNodeAction<Res
             createIndexService,
             actionFilters,
             indexNameExpressionResolver,
-            client
+            client,
+            tracer
         );
     }
 
@@ -105,9 +108,19 @@ public class TransportResizeAction extends TransportClusterManagerNodeAction<Res
         MetadataCreateIndexService createIndexService,
         ActionFilters actionFilters,
         IndexNameExpressionResolver indexNameExpressionResolver,
-        Client client
+        Client client,
+        Tracer tracer
     ) {
-        super(actionName, transportService, clusterService, threadPool, actionFilters, ResizeRequest::new, indexNameExpressionResolver);
+        super(
+            actionName,
+            transportService,
+            clusterService,
+            threadPool,
+            actionFilters,
+            ResizeRequest::new,
+            indexNameExpressionResolver,
+            tracer
+        );
         this.createIndexService = createIndexService;
         this.client = client;
     }
