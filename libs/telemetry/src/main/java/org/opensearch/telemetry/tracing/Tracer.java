@@ -21,6 +21,14 @@ import java.io.Closeable;
 public interface Tracer extends Closeable {
 
     /**
+     * Starts the {@link Span} with given {@link Context}
+     *
+     * @param context span context
+     * @return scope of the span, must be closed with explicit close or with try-with-resource
+     */
+    SpanScope startSpan(Context context);
+
+    /**
      * Starts the {@link Span} with given name
      *
      * @param spanName span name

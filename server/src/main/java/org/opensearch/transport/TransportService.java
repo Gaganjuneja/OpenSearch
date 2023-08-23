@@ -66,10 +66,9 @@ import org.opensearch.core.transport.TransportResponse;
 import org.opensearch.node.NodeClosedException;
 import org.opensearch.tasks.Task;
 import org.opensearch.tasks.TaskManager;
-import org.opensearch.telemetry.tracing.AttributeNames;
+import org.opensearch.telemetry.tracing.SpanBuilder;
 import org.opensearch.telemetry.tracing.SpanScope;
 import org.opensearch.telemetry.tracing.Tracer;
-import org.opensearch.telemetry.tracing.attributes.Attributes;
 import org.opensearch.threadpool.Scheduler;
 import org.opensearch.threadpool.ThreadPool;
 
@@ -866,7 +865,7 @@ public class TransportService extends AbstractLifecycleComponent
     ) {
         try {
             logger.debug("Action: " + action);
-            final SpanScope spanScope = tracer.startSpan(createSpanName(action, connection), populateAttributes(action, connection));
+            final SpanScope spanScope = tracer.startSpan(SpanBuilder.from(action, connection));
             final TransportResponseHandler<T> traceableTransportResponseHandler = getTransportResponseHandler(spanScope, handler);
             final TransportResponseHandler<T> delegate;
             if (request.getParentTask().isSet()) {
@@ -916,10 +915,6 @@ public class TransportService extends AbstractLifecycleComponent
         }
     }
 
-    private String createSpanName(String action, Transport.Connection connection) {
-        return action + " " + (connection.getNode() != null ? connection.getNode().getHostAddress() : null);
-    }
-
     private <T extends TransportResponse> TransportResponseHandler<T> getTransportResponseHandler(
         SpanScope spanScope,
         TransportResponseHandler<T> handler
@@ -954,14 +949,6 @@ public class TransportService extends AbstractLifecycleComponent
                 return handler.toString();
             }
         };
-    }
-
-    private Attributes populateAttributes(String action, Transport.Connection connection) {
-        Attributes attributes = Attributes.create().addAttribute(AttributeNames.TRANSPORT_ACTION, action);
-        if (connection != null && connection.getNode() != null) {
-            attributes.addAttribute(AttributeNames.TRANSPORT_TARGET_HOST, connection.getNode().getHostAddress());
-        }
-        return attributes;
     }
 
     /**
