@@ -11,7 +11,14 @@ package org.opensearch.telemetry.tracing;
 /**
  * Hold the Attribute names to avoid the duplication and consistensy.
  */
-public class AttributeNames {
+public final class AttributeNames {
+
+    /**
+     * Constructor
+     */
+    private AttributeNames() {
+
+    }
 
     /**
      * HTTP Protocol Version
