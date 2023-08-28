@@ -28,7 +28,9 @@ public class StrictCheckSpanProcessor implements SpanProcessor {
 
     @Override
     public void onStart(Span span) {
-        spanMap.put(span.getSpanId(), toMockSpanData(span));
+        if (!span.getSpanName().startsWith("internal")) {
+            spanMap.put(span.getSpanId(), toMockSpanData(span));
+        }
     }
 
     @Override

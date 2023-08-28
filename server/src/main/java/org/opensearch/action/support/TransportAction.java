@@ -46,7 +46,10 @@ import org.opensearch.core.tasks.TaskId;
 import org.opensearch.tasks.Task;
 import org.opensearch.tasks.TaskListener;
 import org.opensearch.tasks.TaskManager;
+import org.opensearch.telemetry.tracing.SpanBuilder;
+import org.opensearch.telemetry.tracing.SpanScope;
 import org.opensearch.telemetry.tracing.Tracer;
+import org.opensearch.telemetry.tracing.listener.TraceableActionListener;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -177,6 +180,8 @@ public abstract class TransportAction<Request extends ActionRequest, Response ex
      * Use this method when the transport action should continue to run in the context of the current task
      */
     public final void execute(Task task, Request request, ActionListener<Response> listener) {
+        final SpanScope spanScope = tracer.startSpan(SpanBuilder.from(task));
+        listener = new TraceableActionListener<>(listener, spanScope);
         ActionRequestValidationException validationException = request.validate();
         if (validationException != null) {
             listener.onFailure(validationException);

@@ -11,6 +11,7 @@ package org.opensearch.telemetry.tracing;
 import org.opensearch.core.common.Strings;
 import org.opensearch.http.HttpRequest;
 import org.opensearch.rest.RestRequest;
+import org.opensearch.tasks.Task;
 import org.opensearch.telemetry.tracing.attributes.Attributes;
 import org.opensearch.transport.Transport;
 
@@ -61,6 +62,25 @@ public final class SpanBuilder {
      */
     public static SpanCreationContext from(String action, Transport.Connection connection) {
         return new SpanCreationContext(createSpanName(action, connection), buildSpanAttributes(action, connection));
+    }
+
+    public static SpanCreationContext from(Task task) {
+        return new SpanCreationContext(createSpanName(task), buildSpanAttributes(task));
+    }
+
+    private static Attributes buildSpanAttributes(Task task) {
+        Attributes attributes = Attributes.create()
+            .addAttribute("task_id", task.getId())
+            .addAttribute(AttributeNames.TRANSPORT_ACTION, task.getAction());
+        if (task.getParentTaskId().isSet()) {
+            attributes.addAttribute("p_task_id", task.getParentTaskId().getId());
+        }
+        return attributes;
+
+    }
+
+    private static String createSpanName(Task task) {
+        return task.getType() + SEPARATOR + task.getAction();
     }
 
     private static String createSpanName(HttpRequest httpRequest) {
