@@ -36,18 +36,18 @@ final class WrappedTracer implements Tracer {
     }
 
     @Override
-    public SpanScope startSpan(SpanCreationContext context) {
+    public Span startSpan(SpanCreationContext context) {
         return startSpan(context.getSpanName(), context.getAttributes());
     }
 
     @Override
-    public SpanScope startSpan(String spanName) {
+    public Span startSpan(String spanName) {
         return startSpan(spanName, Attributes.EMPTY);
     }
 
     @Override
-    public SpanScope startSpan(String spanName, Attributes attributes) {
-        return startSpan(spanName, null, attributes);
+    public Span startSpan(String spanName, Attributes attributes) {
+        return startSpan(spanName, (SpanContext) null, attributes);
     }
 
     @Override
@@ -57,7 +57,22 @@ final class WrappedTracer implements Tracer {
     }
 
     @Override
-    public SpanScope startSpan(String spanName, SpanContext parentSpan, Attributes attributes) {
+    public ScopedSpan startScopedSpan(SpanCreationContext spanCreationContext) {
+        return startScopedSpan(spanCreationContext, null);
+    }
+
+    @Override
+    public ScopedSpan startScopedSpan(SpanCreationContext spanCreationContext, SpanContext parentSpan) {
+        return getDelegateTracer().startScopedSpan(spanCreationContext, parentSpan);
+    }
+
+    @Override
+    public SpanScope createSpanScope(Span span) {
+        return getDelegateTracer().createSpanScope(span);
+    }
+
+    @Override
+    public Span startSpan(String spanName, SpanContext parentSpan, Attributes attributes) {
         Tracer delegateTracer = getDelegateTracer();
         return delegateTracer.startSpan(spanName, parentSpan, attributes);
     }
@@ -70,5 +85,10 @@ final class WrappedTracer implements Tracer {
     // visible for testing
     Tracer getDelegateTracer() {
         return telemetrySettings.isTracingEnabled() ? defaultTracer : NoopTracer.INSTANCE;
+    }
+
+    @Override
+    public Span startSpan(String spanName, Map<String, List<String>> headers, Attributes attributes) {
+        return defaultTracer.startSpan(spanName, headers, attributes);
     }
 }
