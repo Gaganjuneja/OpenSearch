@@ -65,7 +65,7 @@ public class TraceableRunnableTests extends OpenSearchTestCase {
         final AtomicBoolean isRunnableCompleted = new AtomicBoolean(false);
         TraceableRunnable traceableRunnable = new TraceableRunnable(defaultTracer, spanName, parentSpanContext, Attributes.EMPTY, () -> {
             isRunnableCompleted.set(true);
-            currrntSpan.set(defaultTracer.getCurrentSpan());
+            currentSpan.set(defaultTracer.getCurrentSpan());
         });
         traceableRunnable.run();
         assertTrue(isRunnableCompleted.get());

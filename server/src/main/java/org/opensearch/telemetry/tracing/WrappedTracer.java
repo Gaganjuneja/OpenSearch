@@ -13,6 +13,8 @@ import org.opensearch.telemetry.tracing.attributes.Attributes;
 import org.opensearch.telemetry.tracing.noop.NoopTracer;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Wrapper implementation of Tracer. This delegates call to right tracer based on the tracer settings

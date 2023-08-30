@@ -16,6 +16,9 @@ import org.opensearch.telemetry.tracing.SpanScope;
 import org.opensearch.telemetry.tracing.Tracer;
 import org.opensearch.telemetry.tracing.attributes.Attributes;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * No-op implementation of Tracer
  *

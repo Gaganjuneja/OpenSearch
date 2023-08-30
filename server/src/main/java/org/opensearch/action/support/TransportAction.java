@@ -46,6 +46,7 @@ import org.opensearch.core.tasks.TaskId;
 import org.opensearch.tasks.Task;
 import org.opensearch.tasks.TaskListener;
 import org.opensearch.tasks.TaskManager;
+import org.opensearch.telemetry.tracing.Span;
 import org.opensearch.telemetry.tracing.SpanBuilder;
 import org.opensearch.telemetry.tracing.SpanScope;
 import org.opensearch.telemetry.tracing.Tracer;
@@ -180,20 +181,24 @@ public abstract class TransportAction<Request extends ActionRequest, Response ex
      * Use this method when the transport action should continue to run in the context of the current task
      */
     public final void execute(Task task, Request request, ActionListener<Response> listener) {
-        final SpanScope spanScope = tracer.startSpan(SpanBuilder.from(task));
-        listener = new TraceableActionListener<>(listener, spanScope);
-        ActionRequestValidationException validationException = request.validate();
-        if (validationException != null) {
-            listener.onFailure(validationException);
-            return;
-        }
+        final Span span = tracer.startSpan(SpanBuilder.from(task));
 
-        if (task != null && request.getShouldStoreResult()) {
-            listener = new TaskResultStoringActionListener<>(taskManager, task, listener);
-        }
+        try (final SpanScope spanScope = tracer.createSpanScope(span)) {
+            listener = new TraceableActionListener<>(listener, span);
 
-        RequestFilterChain<Request, Response> requestFilterChain = new RequestFilterChain<>(this, logger);
-        requestFilterChain.proceed(task, actionName, request, listener);
+            ActionRequestValidationException validationException = request.validate();
+            if (validationException != null) {
+                listener.onFailure(validationException);
+                return;
+            }
+
+            if (task != null && request.getShouldStoreResult()) {
+                listener = new TaskResultStoringActionListener<>(taskManager, task, listener);
+            }
+
+            RequestFilterChain<Request, Response> requestFilterChain = new RequestFilterChain<>(this, logger);
+            requestFilterChain.proceed(task, actionName, request, listener);
+        }
     }
 
     protected abstract void doExecute(Task task, Request request, ActionListener<Response> listener);

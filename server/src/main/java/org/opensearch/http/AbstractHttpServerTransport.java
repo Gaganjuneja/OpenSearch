@@ -54,6 +54,7 @@ import org.opensearch.core.common.unit.ByteSizeValue;
 import org.opensearch.core.xcontent.NamedXContentRegistry;
 import org.opensearch.rest.RestChannel;
 import org.opensearch.rest.RestRequest;
+import org.opensearch.telemetry.tracing.Span;
 import org.opensearch.telemetry.tracing.SpanBuilder;
 import org.opensearch.telemetry.tracing.SpanScope;
 import org.opensearch.telemetry.tracing.Tracer;
@@ -362,27 +363,30 @@ public abstract class AbstractHttpServerTransport extends AbstractLifecycleCompo
     public void incomingRequest(final HttpRequest httpRequest, final HttpChannel httpChannel) {
         try (ThreadContext.StoredContext ignore = threadPool.getThreadContext().stashContext()) {
             // TODO: Add support for parsing the otel incoming tracer.
-            final SpanScope httpRequestSpanScope = tracer.startSpan(SpanBuilder.from(httpRequest));
-            HttpChannel traceableHttpChannel = new TraceableHttpChannel(httpChannel, httpRequestSpanScope);
-            handleIncomingRequest(httpRequest, traceableHttpChannel, httpRequest.getInboundException());
+            final Span span = tracer.startSpan(SpanBuilder.from(httpRequest));
+            try (final SpanScope httpRequestSpanScope = tracer.createSpanScope(span)) {
+                HttpChannel traceableHttpChannel = new TraceableHttpChannel(httpChannel, span);
+                handleIncomingRequest(httpRequest, traceableHttpChannel, httpRequest.getInboundException());
+            }
         }
     }
 
     // Visible for testing
     void dispatchRequest(final RestRequest restRequest, final RestChannel channel, final Throwable badRequestCause) {
-        final SpanScope spanScope = tracer.startSpan(SpanBuilder.from(restRequest));
-
         RestChannel traceableRestChannel = channel;
-        if (channel != null) {
-            traceableRestChannel = new TraceableRestChannel(channel, spanScope);
-        }
+        final Span span = tracer.startSpan(SpanBuilder.from(restRequest));
+        try (final SpanScope spanScope = tracer.createSpanScope(span)) {
+            if (channel != null) {
+                traceableRestChannel = new TraceableRestChannel(channel, span);
+            }
 
-        final ThreadContext threadContext = threadPool.getThreadContext();
-        try (ThreadContext.StoredContext ignore = threadContext.stashContext()) {
-            if (badRequestCause != null) {
-                dispatcher.dispatchBadRequest(traceableRestChannel, threadContext, badRequestCause);
-            } else {
-                dispatcher.dispatchRequest(restRequest, traceableRestChannel, threadContext);
+            final ThreadContext threadContext = threadPool.getThreadContext();
+            try (ThreadContext.StoredContext ignore = threadContext.stashContext()) {
+                if (badRequestCause != null) {
+                    dispatcher.dispatchBadRequest(traceableRestChannel, threadContext, badRequestCause);
+                } else {
+                    dispatcher.dispatchRequest(restRequest, traceableRestChannel, threadContext);
+                }
             }
         }
     }
