@@ -88,6 +88,9 @@ import org.opensearch.search.profile.ProfileShardResult;
 import org.opensearch.search.profile.SearchProfileShardResults;
 import org.opensearch.tasks.CancellableTask;
 import org.opensearch.tasks.Task;
+import org.opensearch.telemetry.metrics.Counter;
+import org.opensearch.telemetry.metrics.MetricsRegistry;
+import org.opensearch.telemetry.tracing.attributes.Attributes;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.RemoteClusterAware;
 import org.opensearch.transport.RemoteClusterService;
@@ -170,6 +173,10 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
 
     private final SearchRequestStats searchRequestStats;
 
+    private final MetricsRegistry metricsRegistry;
+
+    private final Counter searchRequestCounter;
+
     @Inject
     public TransportSearchAction(
         NodeClient client,
@@ -184,7 +191,8 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
         IndexNameExpressionResolver indexNameExpressionResolver,
         NamedWriteableRegistry namedWriteableRegistry,
         SearchPipelineService searchPipelineService,
-        SearchRequestStats searchRequestStats
+        SearchRequestStats searchRequestStats,
+        MetricsRegistry metricsRegistry
     ) {
         super(SearchAction.NAME, transportService, actionFilters, (Writeable.Reader<SearchRequest>) SearchRequest::new);
         this.client = client;
@@ -202,6 +210,8 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
         this.isRequestStatsEnabled = clusterService.getClusterSettings().get(SEARCH_REQUEST_STATS_ENABLED);
         clusterService.getClusterSettings().addSettingsUpdateConsumer(SEARCH_REQUEST_STATS_ENABLED, this::setIsRequestStatsEnabled);
         this.searchRequestStats = searchRequestStats;
+        this.metricsRegistry = metricsRegistry;
+        this.searchRequestCounter = metricsRegistry.createCounter("searchRequestCounter", "test", "1");
     }
 
     private void setIsRequestStatsEnabled(boolean isRequestStatsEnabled) {
@@ -307,7 +317,16 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
                 listener
             );
         }
+        searchRequestCounter.add(1.0, Attributes.create().addAttribute("search.type", getName(searchRequest)));
         executeRequest(task, searchRequest, this::searchAsyncAction, listener);
+    }
+
+    private static String getName(SearchRequest searchRequest) {
+        if (searchRequest != null && searchRequest.searchType() != null) {
+            return searchRequest.searchType().name();
+        } else {
+            return "no-type";
+        }
     }
 
     /**
