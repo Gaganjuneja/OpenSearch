@@ -20,7 +20,7 @@ import java.security.PrivilegedExceptionAction;
 /**
  * Factory class to create the Exporter instance.
  */
-public class OTelExporterUtil<T> {
+public class OTelExporterUtil {
 
     /**
      * Base constructor.

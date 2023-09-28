@@ -10,8 +10,16 @@ package org.opensearch.telemetry.tracing.exporter;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.opensearch.SpecialPermission;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.telemetry.OTelTelemetrySettings;
+
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 
 import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
 import io.opentelemetry.sdk.metrics.export.AggregationTemporalitySelector;
@@ -39,16 +47,53 @@ public class OTelMetricsExporterFactory {
      * @return MetricExporter instance.
      */
     public static MetricExporter create(Settings settings) {
-        Class<MetricExporter> metricsExporterProviderClass = OTelTelemetrySettings.OTEL_METRICS_EXPORTER_CLASS_SETTING.get(settings);
+        Class<MetricExporter> MetricExporterProviderClass = OTelTelemetrySettings.OTEL_METRICS_EXPORTER_CLASS_SETTING.get(settings);
         MetricExporter metricExporter;
-        if (metricsExporterProviderClass.getName().equals("io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter")) {
+        if (MetricExporterProviderClass.getName().equals("io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter")) {
             metricExporter = OtlpGrpcMetricExporter.builder()
                 .setAggregationTemporalitySelector(AggregationTemporalitySelector.deltaPreferred())
                 .build();
         } else {
-            metricExporter = OTelExporterUtil.<MetricExporter>instantiateExporter(metricsExporterProviderClass);
+            metricExporter = instantiateExporter(MetricExporterProviderClass);
         }
-        logger.info("Successfully instantiated the Metrics Exporter class {}", metricsExporterProviderClass);
+        logger.info("Successfully instantiated the Metrics Exporter class {}", MetricExporterProviderClass);
         return metricExporter;
+    }
+
+    private static MetricExporter instantiateExporter(Class<MetricExporter> exporterProviderClass) {
+        try {
+            // Check we ourselves are not being called by unprivileged code.
+            SpecialPermission.check();
+            return AccessController.doPrivileged((PrivilegedExceptionAction<MetricExporter>) () -> {
+                String methodName = "create";
+                String getDefaultMethod = "getDefault";
+                for (Method m : exporterProviderClass.getMethods()) {
+                    if (m.getName().equals(getDefaultMethod)) {
+                        methodName = getDefaultMethod;
+                        break;
+                    }
+                }
+                try {
+                    return (MetricExporter) MethodHandles.publicLookup()
+                        .findStatic(exporterProviderClass, methodName, MethodType.methodType(exporterProviderClass))
+                        .asType(MethodType.methodType(MetricExporter.class))
+                        .invokeExact();
+                } catch (Throwable e) {
+                    if (e.getCause() instanceof NoSuchMethodException) {
+                        throw new IllegalStateException("No create factory method exist in [" + exporterProviderClass.getName() + "]");
+                    } else {
+                        throw new IllegalStateException(
+                            "Exporter instantiation failed for class [" + exporterProviderClass.getName() + "]",
+                            e.getCause()
+                        );
+                    }
+                }
+            });
+        } catch (PrivilegedActionException ex) {
+            throw new IllegalStateException(
+                "Exporter instantiation failed for class [" + exporterProviderClass.getName() + "]",
+                ex.getCause()
+            );
+        }
     }
 }
