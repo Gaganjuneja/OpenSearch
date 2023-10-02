@@ -10,6 +10,7 @@ package org.opensearch.telemetry.tracing;
 
 import org.opensearch.common.settings.Settings;
 import org.opensearch.telemetry.TelemetrySettings;
+import org.opensearch.telemetry.metrics.exporter.OTelMetricsExporterFactory;
 import org.opensearch.telemetry.tracing.exporter.OTelSpanExporterFactory;
 import org.opensearch.telemetry.tracing.sampler.ProbabilisticSampler;
 import org.opensearch.telemetry.tracing.sampler.RequestSampler;
@@ -85,7 +86,7 @@ public final class OTelResourceProvider {
         return SdkMeterProvider.builder()
             .setResource(resource)
             .registerMetricReader(
-                PeriodicMetricReader.builder(LoggingMetricExporter.create(AggregationTemporality.DELTA))
+                PeriodicMetricReader.builder(OTelMetricsExporterFactory.create(settings))
                     .setInterval(METRICS_PUBLISH_INTERVAL_SETTING.get(settings).getSeconds(), TimeUnit.SECONDS)
                     .build()
             )

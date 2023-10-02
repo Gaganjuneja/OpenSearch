@@ -225,6 +225,10 @@ public abstract class OpenSearchSingleNodeTestCase extends OpenSearchTestCase {
         return true;
     }
 
+    protected boolean addMockTelemetryPlugin() {
+        return true;
+    }
+
     private Node newNode() {
         final Path tempDir = createTempDir();
         final String nodeName = nodeSettings().get(Node.NODE_NAME_SETTING.getKey(), "node_s_0");
@@ -271,7 +275,9 @@ public abstract class OpenSearchSingleNodeTestCase extends OpenSearchTestCase {
             plugins.add(MockHttpTransport.TestPlugin.class);
         }
         plugins.add(MockScriptService.TestPlugin.class);
-        plugins.add(MockTelemetryPlugin.class);
+        if(addMockTelemetryPlugin()) {
+            plugins.add(MockTelemetryPlugin.class);
+        }
         Node node = new MockNode(settingsBuilder.build(), plugins, forbidPrivateIndexSettings());
         try {
             node.start();
