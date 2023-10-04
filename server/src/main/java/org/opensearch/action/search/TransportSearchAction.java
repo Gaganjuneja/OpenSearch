@@ -88,6 +88,9 @@ import org.opensearch.search.profile.ProfileShardResult;
 import org.opensearch.search.profile.SearchProfileShardResults;
 import org.opensearch.tasks.CancellableTask;
 import org.opensearch.tasks.Task;
+import org.opensearch.telemetry.metrics.Counter;
+import org.opensearch.telemetry.metrics.MetricsRegistry;
+import org.opensearch.telemetry.metrics.tags.Tags;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.RemoteClusterAware;
 import org.opensearch.transport.RemoteClusterService;
@@ -170,6 +173,8 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
 
     private final SearchRequestStats searchRequestStats;
 
+    private final Counter testCounter;
+
     @Inject
     public TransportSearchAction(
         NodeClient client,
@@ -184,7 +189,8 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
         IndexNameExpressionResolver indexNameExpressionResolver,
         NamedWriteableRegistry namedWriteableRegistry,
         SearchPipelineService searchPipelineService,
-        SearchRequestStats searchRequestStats
+        SearchRequestStats searchRequestStats,
+        MetricsRegistry metricsRegistry
     ) {
         super(SearchAction.NAME, transportService, actionFilters, (Writeable.Reader<SearchRequest>) SearchRequest::new);
         this.client = client;
@@ -202,6 +208,7 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
         this.isRequestStatsEnabled = clusterService.getClusterSettings().get(SEARCH_REQUEST_STATS_ENABLED);
         clusterService.getClusterSettings().addSettingsUpdateConsumer(SEARCH_REQUEST_STATS_ENABLED, this::setIsRequestStatsEnabled);
         this.searchRequestStats = searchRequestStats;
+        testCounter = metricsRegistry.createCounter("tes", "s", "s");
     }
 
     private void setIsRequestStatsEnabled(boolean isRequestStatsEnabled) {
@@ -307,6 +314,7 @@ public class TransportSearchAction extends HandledTransportAction<SearchRequest,
                 listener
             );
         }
+        testCounter.add(1.0, Tags.create().addTag("test", "test"));
         executeRequest(task, searchRequest, this::searchAsyncAction, listener);
     }
 
