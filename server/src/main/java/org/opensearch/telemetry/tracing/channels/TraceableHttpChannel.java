@@ -8,10 +8,13 @@
 
 package org.opensearch.telemetry.tracing.channels;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.opensearch.common.util.FeatureFlags;
 import org.opensearch.core.action.ActionListener;
 import org.opensearch.http.HttpChannel;
 import org.opensearch.http.HttpResponse;
+import org.opensearch.telemetry.TelemetrySettings;
 import org.opensearch.telemetry.tracing.Span;
 import org.opensearch.telemetry.tracing.Tracer;
 import org.opensearch.telemetry.tracing.listener.TraceableActionListener;
@@ -26,6 +29,8 @@ public class TraceableHttpChannel implements HttpChannel {
     private final HttpChannel delegate;
     private final Span span;
     private final Tracer tracer;
+
+    private static final Logger logger = LogManager.getLogger(TraceableHttpChannel.class);
 
     /**
      * Constructor.
@@ -49,9 +54,11 @@ public class TraceableHttpChannel implements HttpChannel {
      * @return http channel
      */
     public static HttpChannel create(HttpChannel delegate, Span span, Tracer tracer) {
-        if (FeatureFlags.isEnabled(FeatureFlags.TELEMETRY) == true) {
+        if (FeatureFlags.isEnabled(FeatureFlags.TELEMETRY) == true && TelemetrySettings.isTracerFeatureEnabled()) {
+            logger.info("TraceableHttpChannel inside feature flag");
             return new TraceableHttpChannel(delegate, span, tracer);
         } else {
+            logger.info("TraceableHttpChannel outside feature flag");
             return delegate;
         }
     }
