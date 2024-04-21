@@ -69,6 +69,8 @@ public class ClusterService extends AbstractLifecycleComponent {
 
     private final ClusterApplierService clusterApplierService;
 
+    private MetricsRegistry metricsRegistry;
+
     public static final org.opensearch.common.settings.Setting.AffixSetting<String> USER_DEFINED_METADATA = Setting.prefixKeySetting(
         "cluster.metadata.",
         (key) -> Setting.simpleString(key, Property.Dynamic, Property.NodeScope)
@@ -115,6 +117,10 @@ public class ClusterService extends AbstractLifecycleComponent {
         // Add a no-op update consumer so changes are logged
         this.clusterSettings.addAffixUpdateConsumer(USER_DEFINED_METADATA, (first, second) -> {}, (first, second) -> {});
         this.clusterApplierService = clusterApplierService;
+    }
+
+    public MetricsRegistry setMetricsRegistry(MetricsRegistry metricsRegistry) {
+        return this.metricsRegistry = metricsRegistry;
     }
 
     public synchronized void setNodeConnectionsService(NodeConnectionsService nodeConnectionsService) {

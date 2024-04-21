@@ -637,9 +637,9 @@ public class Node implements Closeable {
                 tracerFactory = new NoopTracerFactory();
                 metricsRegistryFactory = new NoopMetricsRegistryFactory();
             }
-
             tracer = tracerFactory.getTracer();
             metricsRegistry = metricsRegistryFactory.getMetricsRegistry();
+            clusterService.setMetricsRegistry(metricsRegistry);
             resourcesToClose.add(tracer::close);
             resourcesToClose.add(metricsRegistry::close);
 
