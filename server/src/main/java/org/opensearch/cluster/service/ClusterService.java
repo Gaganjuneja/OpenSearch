@@ -71,7 +71,7 @@ public class ClusterService extends AbstractLifecycleComponent {
 
     private final ClusterApplierService clusterApplierService;
 
-    private final MetricsRegistry metricsRegistry;
+    private MetricsRegistry metricsRegistry;
 
     public static final org.opensearch.common.settings.Setting.AffixSetting<String> USER_DEFINED_METADATA = Setting.prefixKeySetting(
         "cluster.metadata.",
@@ -145,6 +145,10 @@ public class ClusterService extends AbstractLifecycleComponent {
 
     public MetricsRegistry getMetricsRegistry() {
         return this.metricsRegistry;
+    }
+
+    public MetricsRegistry setMetricsRegistry(MetricsRegistry metricsRegistry) {
+        return this.metricsRegistry = metricsRegistry;
     }
 
     public synchronized void setNodeConnectionsService(NodeConnectionsService nodeConnectionsService) {
