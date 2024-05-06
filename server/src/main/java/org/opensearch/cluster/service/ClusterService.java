@@ -53,6 +53,7 @@ import org.opensearch.common.settings.Setting.Property;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.index.IndexingPressureService;
 import org.opensearch.node.Node;
+import org.opensearch.telemetry.metrics.MetricsRegistry;
 import org.opensearch.threadpool.ThreadPool;
 
 import java.util.Collections;
@@ -121,6 +122,10 @@ public class ClusterService extends AbstractLifecycleComponent {
 
     public MetricsRegistry setMetricsRegistry(MetricsRegistry metricsRegistry) {
         return this.metricsRegistry = metricsRegistry;
+    }
+
+    public MetricsRegistry getMetricsRegistry() {
+        return this.metricsRegistry;
     }
 
     public synchronized void setNodeConnectionsService(NodeConnectionsService nodeConnectionsService) {
