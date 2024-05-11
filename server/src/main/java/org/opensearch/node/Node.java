@@ -242,6 +242,7 @@ import org.opensearch.telemetry.TelemetrySettings;
 import org.opensearch.telemetry.metrics.MetricsRegistry;
 import org.opensearch.telemetry.metrics.MetricsRegistryFactory;
 import org.opensearch.telemetry.metrics.NoopMetricsRegistryFactory;
+import org.opensearch.telemetry.service.TelemetryService;
 import org.opensearch.telemetry.tracing.NoopTracerFactory;
 import org.opensearch.telemetry.tracing.Tracer;
 import org.opensearch.telemetry.tracing.TracerFactory;
@@ -409,9 +410,6 @@ public class Node implements Closeable {
     private final Collection<LifecycleComponent> pluginLifecycleComponents;
     private final LocalNodeFactory localNodeFactory;
     private final NodeService nodeService;
-    private final Tracer tracer;
-
-    private final MetricsRegistry metricsRegistry;
     final NamedWriteableRegistry namedWriteableRegistry;
     private final AtomicReference<RunnableTaskExecutionListener> runnableTaskListener;
     private FileCache fileCache;
@@ -614,37 +612,9 @@ public class Node implements Closeable {
                 );
             }
 
-            TracerFactory tracerFactory;
-            MetricsRegistryFactory metricsRegistryFactory;
-            if (FeatureFlags.isEnabled(TELEMETRY)) {
-                final TelemetrySettings telemetrySettings = new TelemetrySettings(settings, clusterService.getClusterSettings());
-                if (telemetrySettings.isTracingFeatureEnabled() || telemetrySettings.isMetricsFeatureEnabled()) {
-                    List<TelemetryPlugin> telemetryPlugins = pluginsService.filterPlugins(TelemetryPlugin.class);
-                    TelemetryModule telemetryModule = new TelemetryModule(telemetryPlugins, telemetrySettings);
-                    if (telemetrySettings.isTracingFeatureEnabled()) {
-                        tracerFactory = new TracerFactory(telemetrySettings, telemetryModule.getTelemetry(), threadPool.getThreadContext());
-                    } else {
-                        tracerFactory = new NoopTracerFactory();
-                    }
-                    if (telemetrySettings.isMetricsFeatureEnabled()) {
-                        metricsRegistryFactory = new MetricsRegistryFactory(telemetrySettings, telemetryModule.getTelemetry());
-                    } else {
-                        metricsRegistryFactory = new NoopMetricsRegistryFactory();
-                    }
-                } else {
-                    tracerFactory = new NoopTracerFactory();
-                    metricsRegistryFactory = new NoopMetricsRegistryFactory();
-                }
-            } else {
-                tracerFactory = new NoopTracerFactory();
-                metricsRegistryFactory = new NoopMetricsRegistryFactory();
-            }
-
-            tracer = tracerFactory.getTracer();
-            metricsRegistry = metricsRegistryFactory.getMetricsRegistry();
-            resourcesToClose.add(tracer::close);
-            resourcesToClose.add(metricsRegistry::close);
-
+            TelemetryService telemetryService = new TelemetryService(settings, clusterService.getClusterSettings(), pluginsService, threadPool);
+            pluginsService.setTelemetryService(telemetryService);
+            resourcesToClose.add(telemetryService);
             final ClusterInfoService clusterInfoService = newClusterInfoService(settings, clusterService, threadPool, client);
             final UsageService usageService = new UsageService();
 
@@ -982,7 +952,7 @@ public class Node implements Closeable {
                 networkService,
                 restController,
                 clusterService.getClusterSettings(),
-                tracer,
+                telemetryService.getTracer(),
                 transportInterceptors,
                 secureSettingsFactories
             );
@@ -1016,7 +986,7 @@ public class Node implements Closeable {
                 localNodeFactory,
                 settingsModule.getClusterSettings(),
                 taskHeaders,
-                tracer
+                telemetryService.getTracer()
             );
             TopNSearchTasksLogger taskConsumer = new TopNSearchTasksLogger(settings, settingsModule.getClusterSettings());
             transportService.getTaskManager().registerTaskResourceConsumer(taskConsumer);
@@ -1320,10 +1290,11 @@ public class Node implements Closeable {
                 b.bind(ResourceUsageCollectorService.class).toInstance(resourceUsageCollectorService);
                 b.bind(SystemIndices.class).toInstance(systemIndices);
                 b.bind(IdentityService.class).toInstance(identityService);
-                b.bind(Tracer.class).toInstance(tracer);
+                b.bind(Tracer.class).toInstance(telemetryService.getTracer());
                 b.bind(SearchRequestStats.class).toInstance(searchRequestStats);
                 b.bind(SearchRequestSlowLog.class).toInstance(searchRequestSlowLog);
-                b.bind(MetricsRegistry.class).toInstance(metricsRegistry);
+                b.bind(TelemetryService.class).toInstance(telemetryService);
+                b.bind(MetricsRegistry.class).toInstance(telemetryService.getMetricsRegistry());
                 b.bind(RemoteClusterStateService.class).toProvider(() -> remoteClusterStateService);
                 b.bind(RemoteIndexPathUploader.class).toProvider(() -> remoteIndexPathUploader);
                 b.bind(PersistedStateRegistry.class).toInstance(persistedStateRegistry);
@@ -1710,8 +1681,7 @@ public class Node implements Closeable {
         toClose.add(injector.getInstance(NodeEnvironment.class));
         toClose.add(stopWatch::stop);
         if (FeatureFlags.isEnabled(TELEMETRY)) {
-            toClose.add(injector.getInstance(Tracer.class));
-            toClose.add(injector.getInstance(MetricsRegistry.class));
+            toClose.add(injector.getInstance(TelemetryService.class));
         }
 
         if (logger.isTraceEnabled()) {

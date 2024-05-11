@@ -53,6 +53,7 @@ import org.opensearch.core.common.Strings;
 import org.opensearch.core.service.ReportingService;
 import org.opensearch.index.IndexModule;
 import org.opensearch.semver.SemverRange;
+import org.opensearch.telemetry.service.TelemetryService;
 import org.opensearch.threadpool.ExecutorBuilder;
 import org.opensearch.transport.TransportSettings;
 
@@ -309,6 +310,16 @@ public class PluginsService implements ReportingService<PluginsAndModules> {
         logger.info("PluginService:onIndexModule index:" + indexModule.getIndex());
         for (Tuple<PluginInfo, Plugin> plugin : plugins) {
             plugin.v2().onIndexModule(indexModule);
+        }
+    }
+
+    /**
+     * Sets TelemetryService to all the plugins. Which plugins can use to instrument their code.
+     * @param telemetryService telemetry service
+     */
+    public void setTelemetryService(TelemetryService telemetryService) {
+        for (Tuple<PluginInfo, Plugin> plugin : plugins) {
+            plugin.v2().setTelemetryService(telemetryService);
         }
     }
 

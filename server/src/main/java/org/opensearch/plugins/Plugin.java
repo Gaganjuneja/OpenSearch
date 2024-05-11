@@ -56,6 +56,7 @@ import org.opensearch.index.IndexModule;
 import org.opensearch.index.shard.IndexSettingProvider;
 import org.opensearch.repositories.RepositoriesService;
 import org.opensearch.script.ScriptService;
+import org.opensearch.telemetry.service.TelemetryService;
 import org.opensearch.threadpool.ExecutorBuilder;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.watcher.ResourceWatcherService;
@@ -278,4 +279,10 @@ public abstract class Plugin implements Closeable {
     public Optional<SecureSettingsFactory> getSecureSettingFactory(Settings settings) {
         return Optional.empty();
     }
+
+    /**
+     * Called to set the {@link TelemetryService} and plugins can use it for generating the instrumentations.
+     * @param telemetryService telemetry service
+     */
+    public void setTelemetryService(TelemetryService telemetryService){}
 }
