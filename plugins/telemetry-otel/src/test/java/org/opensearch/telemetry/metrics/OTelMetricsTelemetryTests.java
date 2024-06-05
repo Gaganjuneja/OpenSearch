@@ -176,7 +176,12 @@ public class OTelMetricsTelemetryTests extends OpenSearchTestCase {
         when(mockOTelDoubleGaugeBuilder.setUnit(unit)).thenReturn(mockOTelDoubleGaugeBuilder);
         when(mockOTelDoubleGaugeBuilder.buildWithCallback(any(Consumer.class))).thenReturn(observableDoubleGauge);
 
-        Closeable closeable = metricsTelemetry.createGauge(observableGaugeName, description, unit, () -> 1.0, Tags.EMPTY);
+        Closeable closeable = metricsTelemetry.createGauge(
+            observableGaugeName,
+            description,
+            unit,
+            () -> ObservableMeasurement.create(1.0, Tags.EMPTY)
+        );
         closeable.close();
         verify(observableDoubleGauge).close();
     }

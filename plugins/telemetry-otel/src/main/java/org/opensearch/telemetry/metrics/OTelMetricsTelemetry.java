@@ -11,7 +11,6 @@ package org.opensearch.telemetry.metrics;
 import org.opensearch.common.concurrent.RefCountedReleasable;
 import org.opensearch.telemetry.OTelAttributesConverter;
 import org.opensearch.telemetry.OTelTelemetryPlugin;
-import org.opensearch.telemetry.metrics.tags.Tags;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -91,12 +90,14 @@ public class OTelMetricsTelemetry<T extends MeterProvider & Closeable> implement
     }
 
     @Override
-    public Closeable createGauge(String name, String description, String unit, Supplier<Double> valueProvider, Tags tags) {
+    public Closeable createGauge(String name, String description, String unit, Supplier<ObservableMeasurement> valueProvider) {
         ObservableDoubleGauge doubleObservableGauge = AccessController.doPrivileged(
             (PrivilegedAction<ObservableDoubleGauge>) () -> otelMeter.gaugeBuilder(name)
                 .setUnit(unit)
                 .setDescription(description)
-                .buildWithCallback(record -> record.record(valueProvider.get(), OTelAttributesConverter.convert(tags)))
+                .buildWithCallback(
+                    record -> record.record(valueProvider.get().getValue(), OTelAttributesConverter.convert(valueProvider.get().getTags()))
+                )
         );
         return () -> doubleObservableGauge.close();
     }

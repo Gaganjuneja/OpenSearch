@@ -13,9 +13,9 @@ import org.opensearch.telemetry.TelemetrySettings;
 import org.opensearch.telemetry.metrics.Counter;
 import org.opensearch.telemetry.metrics.Histogram;
 import org.opensearch.telemetry.metrics.MetricsTelemetry;
+import org.opensearch.telemetry.metrics.ObservableMeasurement;
 import org.opensearch.telemetry.metrics.noop.NoopCounter;
 import org.opensearch.telemetry.metrics.noop.NoopHistogram;
-import org.opensearch.telemetry.metrics.tags.Tags;
 import org.opensearch.telemetry.tracing.TracingTelemetry;
 import org.opensearch.test.telemetry.tracing.MockTracingTelemetry;
 
@@ -58,7 +58,7 @@ public class MockTelemetry implements Telemetry {
             }
 
             @Override
-            public Closeable createGauge(String name, String description, String unit, Supplier<Double> valueProvider, Tags tags) {
+            public Closeable createGauge(String name, String description, String unit, Supplier<ObservableMeasurement> valueProvider) {
                 return () -> {};
             }
 

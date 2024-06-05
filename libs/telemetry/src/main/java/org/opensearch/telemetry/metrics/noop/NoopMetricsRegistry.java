@@ -12,7 +12,7 @@ import org.opensearch.common.annotation.InternalApi;
 import org.opensearch.telemetry.metrics.Counter;
 import org.opensearch.telemetry.metrics.Histogram;
 import org.opensearch.telemetry.metrics.MetricsRegistry;
-import org.opensearch.telemetry.metrics.tags.Tags;
+import org.opensearch.telemetry.metrics.ObservableMeasurement;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -48,7 +48,7 @@ public class NoopMetricsRegistry implements MetricsRegistry {
     }
 
     @Override
-    public Closeable createGauge(String name, String description, String unit, Supplier<Double> valueProvider, Tags tags) {
+    public Closeable createGauge(String name, String description, String unit, Supplier<ObservableMeasurement> valueProvider) {
         return () -> {};
     }
 
